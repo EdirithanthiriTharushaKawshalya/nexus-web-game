@@ -417,7 +417,7 @@ export default function LandingPage() {
         </div>
 
         {/* Right column: Wooden Sidebar (Shop & Status Dashboard) */}
-        <div className="w-full landscape:w-[220px] lg:w-[260px] flex flex-row landscape:flex-col lg:flex-col justify-start items-center panel-wood border-4 border-amber-950 p-2.5 landscape:p-3 lg:p-4 rounded-3xl h-auto landscape:h-full landscape:max-h-[88dvh] lg:h-full lg:max-h-[88dvh] gap-3 landscape:gap-1.5 lg:gap-4 overflow-hidden">
+        <div className="w-full landscape:w-[220px] lg:w-[260px] flex flex-row landscape:flex-col lg:flex-col justify-start items-center panel-wood border-4 border-amber-950 p-2 landscape:p-3 lg:p-4 rounded-3xl h-auto landscape:h-full landscape:max-h-[92dvh] lg:h-full lg:max-h-[88dvh] gap-2 landscape:gap-2 lg:gap-4 overflow-y-auto scrollbar-hide">
           
           {/* Header info (only visible in desktop sidebar) */}
           <div className="hidden lg:block text-center mb-1 w-full">
@@ -426,7 +426,7 @@ export default function LandingPage() {
           </div>
 
           {/* Wave Counter & Elixir Core (only on landscape / desktop sidebar) */}
-          <div className="hidden landscape:flex lg:flex flex-row lg:flex-col gap-1.5 lg:gap-2 w-full">
+          <div className="hidden landscape:flex lg:flex flex-row lg:flex-col gap-1.5 lg:gap-2 w-full shrink-0">
             {/* Wave Counter */}
             <div className="bg-amber-950 border-2 border-amber-800 p-1.5 lg:p-2 rounded-xl flex items-center justify-center lg:justify-between gap-1 font-cartoon-flat leading-none shadow-inner flex-1 w-full">
               <span className="text-[7px] lg:text-[9px] text-amber-500 uppercase tracking-widest font-bold">WAVE</span>
@@ -449,20 +449,20 @@ export default function LandingPage() {
           </div>
 
           {/* Clan Members list (visible on both mobile & desktop sidebar) */}
-          <div className="flex flex-col gap-1 w-full max-h-[120px] landscape:max-h-[140px] lg:max-h-[180px] overflow-y-auto border-b-2 border-amber-900/40 pb-2 lg:pb-3 scrollbar-thin shrink-0">
+          <div className="flex flex-col gap-1 w-full border-b-2 border-amber-900/40 pb-2 lg:pb-3 shrink-0">
             <div className="text-[7px] lg:text-[8px] font-black text-amber-300 uppercase tracking-widest mb-1 text-center font-cartoon-flat">CLAN MEMBERS</div>
             {gameState.players && Object.values(gameState.players).map(player => (
               <div 
                 key={player.id} 
-                className={`bg-amber-950/90 border-2 ${player.id === user.uid ? 'border-yellow-400 shadow-[inset_0_0_8px_rgba(234,179,8,0.2)]' : 'border-amber-900/60'} p-1.5 lg:p-2 rounded-xl flex flex-col font-cartoon-flat transition-colors`}
+                className={`bg-amber-950/90 border-2 ${player.id === user.uid ? 'border-yellow-400 shadow-[inset_0_0_8px_rgba(234,179,8,0.2)]' : 'border-amber-900/60'} p-1 lg:p-2 rounded-xl flex flex-col font-cartoon-flat transition-colors`}
               >
-                <div className="flex items-center justify-between gap-1">
+                <div className="flex items-center justify-between gap-1 leading-none">
                   <span className="text-[9px] lg:text-[11px] font-bold text-amber-100 truncate pr-1 flex-1">{player.name}</span>
                   {player.id === user.uid && (
                     <span className="text-[6px] lg:text-[8px] font-cartoon bg-green-600 border border-green-400 px-1 rounded uppercase tracking-wider text-white shrink-0">YOU</span>
                   )}
                 </div>
-                <div className="flex justify-between items-center mt-0.5 lg:mt-1 text-[8px] lg:text-[10px] font-bold">
+                <div className="flex justify-between items-center mt-0.5 text-[8px] lg:text-[10px] font-bold leading-none">
                   <span className="text-yellow-400">🪙 {player.gold}</span>
                   <span className="text-blue-400">🏆 {player.score}</span>
                 </div>
@@ -471,7 +471,7 @@ export default function LandingPage() {
           </div>
 
           {/* Sidebar shop items */}
-          <div className="flex flex-row landscape:flex-col lg:flex-col gap-1.5 md:gap-2 flex-grow landscape:flex-none w-full justify-center landscape:justify-start overflow-y-auto landscape:overflow-visible scrollbar-hide">
+          <div className="flex flex-row landscape:flex-col lg:flex-col gap-1.5 lg:gap-2 flex-grow landscape:flex-none w-full justify-center landscape:justify-start shrink-0">
             {[
               { id: 'basic', name: 'ARCHER TOWER', cost: 50, color: 'bg-green-700 border-green-800 text-green-100', icon: '🏹' },
               { id: 'sniper', name: 'WIZARD TOWER', cost: 120, color: 'bg-purple-700 border-purple-800 text-purple-100', icon: '🧙‍♂️' },
@@ -483,28 +483,28 @@ export default function LandingPage() {
                   setSelectedTowerType(t.id);
                   setSelectedTowerId(null);
                 }}
-                className={`flex flex-1 landscape:flex-none landscape:w-full items-center justify-center landscape:justify-start gap-1 md:gap-1.5 lg:gap-3 p-1 md:p-1.5 lg:p-2 rounded-xl border-2 transition-all btn-cartoon ${
+                className={`flex flex-1 landscape:flex-none landscape:w-full items-center justify-center landscape:justify-start gap-1 lg:gap-3 p-1 lg:p-2 rounded-xl border-2 transition-all btn-cartoon ${
                   selectedTowerType === t.id && !selectedTowerId
                     ? 'bg-amber-950 border-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.4)]' 
                     : 'bg-amber-900 border-amber-950'
                 }`}
               >
-                <div className={`w-6 h-6 md:w-7 md:h-7 lg:w-9 lg:h-9 rounded-lg ${t.color} border flex items-center justify-center text-xs md:text-sm lg:text-base shrink-0`}>
+                <div className={`w-5 h-5 landscape:w-6 landscape:h-6 lg:w-9 lg:h-9 rounded-lg ${t.color} border flex items-center justify-center text-[10px] lg:text-base shrink-0`}>
                   {t.icon}
                 </div>
                 <div className="text-left font-cartoon-flat leading-tight">
-                  <div className="text-[7px] md:text-[8px] lg:text-[10px] font-black text-amber-100 uppercase truncate max-w-[60px] md:max-w-[80px] lg:max-w-[120px]">{t.name.split(' ')[0]}</div>
-                  <div className="text-[7px] md:text-[8px] lg:text-[9px] text-yellow-400 font-bold">🪙 {t.cost}</div>
+                  <div className="text-[7px] lg:text-[10px] font-black text-amber-100 uppercase truncate max-w-[50px] lg:max-w-[120px]">{t.name.split(' ')[0]}</div>
+                  <div className="text-[7px] lg:text-[9px] text-yellow-400 font-bold">🪙 {t.cost}</div>
                 </div>
               </button>
             ))}
           </div>
 
           {/* Abort button */}
-          <div className="flex-none w-20 md:w-24 landscape:mt-auto landscape:w-full flex items-center">
+          <div className="flex-none w-20 md:w-24 landscape:mt-2 lg:mt-auto landscape:w-full flex items-center shrink-0">
             <button 
               onClick={() => window.location.reload()} 
-              className="w-full btn-cartoon btn-red py-1.5 md:py-2.5 rounded-xl text-[8px] md:text-xs font-cartoon"
+              className="w-full btn-cartoon btn-red py-1 landscape:py-2 rounded-xl text-[8px] md:text-xs font-cartoon"
             >
               ABORT
             </button>
