@@ -17,8 +17,27 @@ export default function LandingPage() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isJoining, setIsJoining] = useState(false);
   const [showWaveNotification, setShowWaveNotification] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
   
   const lastWaveRef = useRef(0);
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {
+        console.error(`Error: ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -82,6 +101,19 @@ export default function LandingPage() {
   if (gameState && gameState.gameStatus === 'victory') {
     return (
       <div className="flex flex-col items-center justify-center h-[100dvh] max-h-[100dvh] w-screen overflow-hidden bg-emerald-950 text-white p-4 relative bg-jungle">
+        <button 
+          onClick={toggleFullscreen}
+          className="absolute top-4 right-4 md:top-6 md:right-6 bg-amber-950/90 p-1.5 md:p-2.5 rounded-2xl border-3 border-amber-700 shadow-xl z-20 hover:bg-amber-900 transition-all cursor-pointer group/fs"
+          title="Toggle Fullscreen"
+        >
+           <svg className="w-4 h-4 md:w-5 md:h-5 fill-yellow-400 group-hover/fs:fill-yellow-300 transition-colors" viewBox="0 0 24 24">
+            {isFullscreen ? (
+              <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+            ) : (
+              <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+            )}
+          </svg>
+        </button>
         <div className="text-center w-full max-w-lg landscape:max-w-2xl animate-in fade-in zoom-in duration-700 panel-wood p-5 md:p-10 border-8 border-yellow-400 shadow-[0_0_80px_rgba(251,191,36,0.6)] relative overflow-hidden flex flex-col landscape:flex-row lg:flex-col items-center justify-between gap-4 md:gap-6">
           <div className="absolute -top-12 -left-12 w-32 h-32 bg-yellow-400/20 rounded-full blur-3xl animate-pulse" />
           
@@ -128,6 +160,19 @@ export default function LandingPage() {
   if (gameState && gameState.gameStatus === 'gameOver') {
     return (
       <div className="flex flex-col items-center justify-center h-[100dvh] max-h-[100dvh] w-screen overflow-hidden bg-emerald-950/90 text-white p-4 relative bg-jungle">
+        <button 
+          onClick={toggleFullscreen}
+          className="absolute top-4 right-4 md:top-6 md:right-6 bg-amber-950/90 p-1.5 md:p-2.5 rounded-2xl border-3 border-amber-700 shadow-xl z-20 hover:bg-amber-900 transition-all cursor-pointer group/fs"
+          title="Toggle Fullscreen"
+        >
+           <svg className="w-4 h-4 md:w-5 md:h-5 fill-yellow-400 group-hover/fs:fill-yellow-300 transition-colors" viewBox="0 0 24 24">
+            {isFullscreen ? (
+              <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+            ) : (
+              <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+            )}
+          </svg>
+        </button>
         <div className="text-center w-full max-w-md landscape:max-w-2xl animate-in fade-in zoom-in duration-500 panel-wood p-4 md:p-8 border-4 border-amber-950 flex flex-col landscape:flex-row lg:flex-col items-center justify-between gap-4 md:gap-6">
           <div className="flex flex-col items-center landscape:items-start text-center landscape:text-left flex-1">
             <h1 className="text-4xl md:text-6xl font-black text-red-500 tracking-tight mb-2 md:mb-4 leading-none font-cartoon">
@@ -200,6 +245,21 @@ export default function LandingPage() {
           </div>
 
           <div className="relative w-full h-full landscape:w-auto landscape:h-full group max-h-[70dvh] landscape:max-h-[88dvh] lg:max-h-[88dvh]" style={{ aspectRatio: '16/10' }}>
+            {/* FULLSCREEN TOGGLE */}
+            <button 
+              onClick={toggleFullscreen}
+              className="absolute top-2 left-2 md:top-3 md:left-3 bg-amber-950/90 border-2 border-amber-800 p-1.5 md:p-2 rounded-xl shadow-md z-50 cursor-pointer hover:bg-amber-900 transition-all active:scale-95 group/fs"
+              title="Toggle Fullscreen"
+            >
+              <svg className="w-3 h-3 md:w-5 md:h-5 fill-yellow-400 group-hover/fs:fill-yellow-300 transition-colors" viewBox="0 0 24 24">
+                {isFullscreen ? (
+                  <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+                ) : (
+                  <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                )}
+              </svg>
+            </button>
+
             <GameCanvas 
               gameState={gameState} 
               selectedTowerId={selectedTowerId}
@@ -379,6 +439,19 @@ export default function LandingPage() {
   if (roomCode) {
     return (
       <div className="flex flex-col landscape:flex-row lg:flex-col lg:landscape:flex-col items-center justify-center h-[100dvh] max-h-[100dvh] w-screen overflow-hidden bg-emerald-950 text-white p-4 bg-jungle outline-none gap-4 md:gap-8 lg:gap-8">
+        <button 
+          onClick={toggleFullscreen}
+          className="absolute top-4 right-4 md:top-6 md:right-6 bg-amber-950/90 p-1.5 md:p-2.5 rounded-2xl border-3 border-amber-700 shadow-xl z-20 hover:bg-amber-900 transition-all cursor-pointer group/fs"
+          title="Toggle Fullscreen"
+        >
+           <svg className="w-4 h-4 md:w-5 md:h-5 fill-yellow-400 group-hover/fs:fill-yellow-300 transition-colors" viewBox="0 0 24 24">
+            {isFullscreen ? (
+              <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+            ) : (
+              <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+            )}
+          </svg>
+        </button>
         <div className="text-center landscape:text-left lg:text-center lg:landscape:text-center flex flex-col items-center landscape:items-start lg:items-center lg:landscape:items-center mb-2 landscape:mb-0 lg:mb-6">
           <h1 className="text-3xl md:text-4xl font-cartoon mb-1 md:mb-2 tracking-tight uppercase italic text-yellow-400">WAR ROOM LOBBY</h1>
           <p className="text-yellow-100/60 text-[10px] md:text-xs uppercase tracking-widest font-cartoon-flat mb-2 md:mb-4">WAR PATH ENVELOPE: <span className="text-yellow-400 font-cartoon-sm">{roomCode}</span></p>
@@ -452,6 +525,19 @@ export default function LandingPage() {
            <span className="text-[7px] md:text-[9px] text-amber-500 uppercase tracking-widest font-bold">ACTIVE CHIEF</span>
            <span className="font-bold text-amber-100 text-xs md:text-sm tracking-tight">{user?.displayName}</span>
         </div>
+        <button 
+          onClick={toggleFullscreen}
+          className="bg-amber-900 hover:bg-amber-800 text-yellow-400 p-1 md:p-2 rounded-xl border-2 border-amber-600 transition-all cursor-pointer group/fs"
+          title="Toggle Fullscreen"
+        >
+          <svg className="w-4 h-4 md:w-5 md:h-5 fill-yellow-400 group-hover/fs:fill-yellow-300 transition-colors" viewBox="0 0 24 24">
+            {isFullscreen ? (
+              <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+            ) : (
+              <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+            )}
+          </svg>
+        </button>
         <button onClick={logout} className="bg-amber-900 hover:bg-red-900/20 text-yellow-400 hover:text-red-400 p-1 md:p-2 rounded-xl border-2 border-amber-600 transition-all cursor-pointer text-xs md:text-base">
           🚪
         </button>
