@@ -18,8 +18,14 @@ export default function LandingPage() {
   const [isJoining, setIsJoining] = useState(false);
   const [showWaveNotification, setShowWaveNotification] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [testMode, setTestMode] = useState<string | null>(null);
   
   const lastWaveRef = useRef(0);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    setTestMode(urlParams.get('test'));
+  }, []);
 
   useEffect(() => {
     const handleFullscreenChange = () => {
@@ -88,19 +94,33 @@ export default function LandingPage() {
 
   const currentSelectedTower = gameState?.towers.find(t => t.id === selectedTowerId);
 
-  if (loading || isConnecting) {
+  // Set active variables to mock data if in test mode
+  const activeUser = testMode ? { uid: "1", displayName: "THARUSHA KAWSHALYA" } : user;
+  const activeGameState = testMode === "victory" ? {
+    gameStatus: "victory",
+    wave: 10,
+    players: {
+      "1": { id: "1", name: "THARUSHA KAWSHALYA", score: 34700, gold: 150, lives: 20 },
+      "2": { id: "2", name: "COMMANDER_BETA", score: 21500, gold: 100, lives: 20 },
+      "3": { id: "3", name: "COMMANDER_GAMMA", score: 18400, gold: 100, lives: 20 },
+      "4": { id: "4", name: "COMMANDER_DELTA", score: 12900, gold: 100, lives: 20 },
+      "5": { id: "5", name: "COMMANDER_EPSILON", score: 9500, gold: 100, lives: 20 }
+    }
+  } : gameState;
+
+  if (!testMode && (loading || isConnecting)) {
     return <GameLoadingScreen message={isConnecting ? "Entering Village Gates..." : "Gathering Elixir..."} />;
   }
 
   // 1. AUTH SCREEN
-  if (!user) {
+  if (!testMode && !user) {
     return <AuthPortal />;
   }
 
   // 2. VICTORY VIEW
-  if (gameState && gameState.gameStatus === 'victory') {
+  if (activeGameState && activeGameState.gameStatus === 'victory') {
     return (
-      <div className="flex flex-col items-center justify-center h-[100dvh] max-h-[100dvh] w-screen overflow-hidden bg-emerald-950 text-white p-4 relative bg-jungle">
+      <div className="flex flex-col items-center justify-center h-[100dvh] max-h-[100dvh] w-screen overflow-y-auto bg-emerald-950 text-white p-3 landscape:p-2 md:p-4 relative bg-jungle scrollbar-hide">
         <button 
           onClick={toggleFullscreen}
           className="absolute top-4 right-4 md:top-6 md:right-6 bg-amber-950/90 p-1.5 md:p-2.5 rounded-2xl border-3 border-amber-700 shadow-xl z-20 hover:bg-amber-900 transition-all cursor-pointer group/fs"
@@ -114,41 +134,96 @@ export default function LandingPage() {
             )}
           </svg>
         </button>
-        <div className="text-center w-full max-w-lg landscape:max-w-2xl animate-in fade-in zoom-in duration-700 panel-wood p-5 md:p-10 border-8 border-yellow-400 shadow-[0_0_80px_rgba(251,191,36,0.6)] relative overflow-hidden flex flex-col landscape:flex-row lg:flex-col items-center justify-between gap-4 md:gap-6">
-          <div className="absolute -top-12 -left-12 w-32 h-32 bg-yellow-400/20 rounded-full blur-3xl animate-pulse" />
+        
+        <div className="text-center w-full max-w-[420px] landscape:max-w-2xl md:max-w-[760px] animate-in fade-in zoom-in duration-700 panel-wood p-4 landscape:p-3 md:p-8 border-6 md:border-8 border-yellow-400 shadow-[0_0_80px_rgba(251,191,36,0.6)] relative overflow-hidden flex flex-col items-center gap-3 landscape:gap-4 md:gap-6 my-auto z-10">
+          <div className="absolute -top-12 -left-12 w-32 h-32 bg-yellow-400/20 rounded-full blur-3xl animate-pulse pointer-events-none" />
           
-          <div className="flex flex-col items-center landscape:items-start text-center landscape:text-left flex-1">
-            <h1 className="text-5xl md:text-8xl font-cartoon text-yellow-400 tracking-tighter mb-2 md:mb-4 leading-none font-cartoon rotate-[-2deg]">
+          {/* Header section */}
+          <div className="flex flex-col items-center text-center w-full">
+            {/* Gold Trophy Icon */}
+            <div className="w-12 h-12 landscape:w-8 landscape:h-8 md:w-20 md:h-20 mb-1 landscape:mb-0.5 md:mb-2 drop-shadow-[0_4px_6px_rgba(0,0,0,0.5)] animate-bounce-slow">
+              <svg viewBox="0 0 24 24" className="w-full h-full fill-yellow-400 stroke-amber-950 stroke-1">
+                <path d="M16 20h-8v1c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-1z" fill="#d97706" />
+                <path d="M12 17v3h-2v-3H8v-2h8v2h-2z" fill="#b45309" />
+                <path d="M5 7c-1.1 0-2 .9-2 2v2c0 2.2 1.8 4 4 4h1V5H7c-1.1 0-2 .9-2 2zm2 6H7c-1.1 0-2-.9-2-2V9c0-1.1.9-2 2-2h1v6zm12-6c-1.1 0-2-.9-2 2v6h1c2.2 0 4-1.8 4-4V9c0-1.1-.9-2-2-2zm-1 6V7h1c1.1 0 2 .9 2 2v2c0 1.1-.9 2-2 2h-1z" fill="#facc15" />
+                <path d="M17 5v5c0 2.76-2.24 5-5 5s-5-2.24-5-5V5h10z" fill="#fbbf24" />
+                <ellipse cx="12" cy="5" rx="5" ry="1.5" fill="#fef08a" />
+                <path d="M12 3.5C8.69 3.5 6 4.17 6 5s2.69 1.5 6 1.5 6-.67 6-1.5-2.69-1.5-6-1.5z" fill="#eab308" opacity="0.3" />
+                <path d="M9 7v6c0 .55.45 1 1 1s1-.45 1-1V7c0-.55-.45-1-1-1s-1 .45-1 1z" fill="#fff" opacity="0.4" />
+              </svg>
+            </div>
+            
+            <h1 className="text-4xl landscape:text-2xl md:text-7xl font-cartoon text-yellow-400 tracking-tighter mb-0.5 leading-none rotate-[-2deg] drop-shadow-[0_3px_0_#451a03] md:drop-shadow-[0_4px_0_#451a03]">
               VICTORY!
             </h1>
-            <p className="text-xs md:text-xl text-yellow-100 mb-2 md:mb-10 uppercase tracking-[0.2em] md:tracking-[0.3em] font-black italic">Sector Secured. Nexus Defended.</p>
+            <p className="text-[9px] landscape:text-[8px] md:text-lg text-yellow-100 uppercase tracking-[0.2em] md:tracking-[0.3em] font-black italic drop-shadow-[0_1.5px_0_#451a03] md:drop-shadow-[0_2px_0_#451a03]">
+              Sector Secured. Nexus Defended.
+            </p>
           </div>
           
-          <div className="w-full max-w-sm flex flex-col gap-4 flex-1 z-10">
-            <div className="space-y-2 md:space-y-3">
-              <h2 className="text-center font-cartoon-sm text-emerald-300 text-xs md:text-sm mb-1 md:mb-2 tracking-widest">🏆 COMMANDERS 🏆</h2>
-              <div className="space-y-1.5 max-h-[150px] landscape:max-h-[100px] overflow-y-auto scrollbar-thin">
-                {Object.values(gameState.players).sort((a,b) => b.score - a.score).map((p, i) => (
-                  <div key={p.id} className="bg-amber-950 border-3 border-yellow-600/50 p-2.5 md:p-4 rounded-3xl flex justify-between items-center shadow-lg">
-                    <div className="flex items-center gap-4">
-                      <span className="text-yellow-500 font-cartoon text-base md:text-xl">#0{i+1}</span>
-                      <span className="font-black text-amber-100 text-sm md:text-lg font-cartoon-flat">{p.name}</span>
+          {/* Main content grid */}
+          <div className="w-full flex flex-col landscape:flex-row md:flex-row gap-3 landscape:gap-4 md:gap-6 items-stretch justify-center">
+            {/* Left Column: Elite Commanders */}
+            <div className="flex-[1.2] flex flex-col min-w-0">
+              <h2 className="text-center font-cartoon-sm text-cyan-400 text-xs landscape:text-[10px] md:text-sm mb-1 md:mb-1.5 tracking-widest uppercase drop-shadow-[0_1.5px_0_#1c1917]">
+                Elite Commanders
+              </h2>
+              
+              <div className="flex-grow bg-amber-950/80 border-3 border-yellow-600/50 p-2 landscape:p-1.5 md:p-3.5 rounded-3xl flex flex-col gap-1.5 md:gap-2 shadow-inner max-h-[140px] landscape:max-h-[80px] md:max-h-[180px] overflow-y-auto scrollbar-hide">
+                {Object.values(activeGameState.players).sort((a,b) => b.score - a.score).map((p, i) => {
+                  let rankTitle = "Clan Defender";
+                  if (i === 0) rankTitle = "Village Legend";
+                  else if (i === 1) rankTitle = "Elite Captain";
+                  else if (i === 2) rankTitle = "Frontline Hero";
+
+                  return (
+                    <div key={p.id} className="bg-amber-900/40 border border-amber-800 p-1.5 landscape:p-1 md:p-3 rounded-2xl flex justify-between items-center shadow">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <span className={`font-cartoon text-sm landscape:text-xs md:text-xl shrink-0 ${
+                          i === 0 ? 'text-yellow-400' : i === 1 ? 'text-zinc-300' : i === 2 ? 'text-amber-500' : 'text-amber-200'
+                        }`}>
+                          #{i+1}
+                        </span>
+                        <div className="flex flex-col min-w-0 leading-tight">
+                          <span className="font-black text-amber-100 text-xs landscape:text-[10px] md:text-base font-cartoon-flat truncate">
+                            {p.name}
+                          </span>
+                          <span className="text-[7px] landscape:text-[6px] md:text-[10px] text-yellow-400/80 font-bold uppercase tracking-wider">
+                            {rankTitle}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <span className="text-yellow-400 font-cartoon text-sm landscape:text-xs md:text-xl">
+                          {p.score}
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <span className="block text-[8px] md:text-[10px] text-amber-500 font-black tracking-widest uppercase">Final Score</span>
-                      <span className="text-yellow-400 font-cartoon text-lg md:text-2xl">{p.score}</span>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
-            <button 
-              onClick={() => window.location.reload()}
-              className="w-full btn-cartoon btn-gold py-3 md:py-6 rounded-2xl md:rounded-[2.5rem] text-lg md:text-2xl font-cartoon"
-            >
-              RETURN TO COUNCIL
-            </button>
+            {/* Right Column: Stats & Return Button */}
+            <div className="flex-1 flex flex-col gap-2 md:gap-4 justify-between">
+              {/* Waves Survived Card */}
+              <div className="bg-amber-950/80 border-3 border-yellow-600/50 p-2.5 landscape:p-1.5 md:p-4 rounded-3xl flex flex-col items-center justify-center text-center shadow-inner py-3 landscape:py-1 md:py-6">
+                <span className="text-[8px] landscape:text-[7px] md:text-xs text-amber-500 font-black tracking-widest uppercase mb-0.5 md:mb-1">
+                  Waves Survived
+                </span>
+                <span className="text-2xl landscape:text-lg md:text-5xl text-yellow-400 font-cartoon leading-none">
+                  {activeGameState.wave}
+                </span>
+              </div>
+
+              {/* Return Button */}
+              <button 
+                onClick={() => window.location.reload()}
+                className="w-full btn-cartoon btn-gold py-2 landscape:py-1.5 md:py-4 rounded-2xl text-xs landscape:text-[10px] md:text-xl font-cartoon uppercase tracking-wider"
+              >
+                Return to Village
+              </button>
+            </div>
           </div>
         </div>
       </div>
