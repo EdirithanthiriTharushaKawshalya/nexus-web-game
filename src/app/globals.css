@@ -20,6 +20,11 @@ body {
   font-family: 'Outfit', sans-serif;
 }
 
+/* Global Focus Reset */
+*:focus {
+  outline: none !important;
+}
+
 /* Thick Cartoon Text Outlines */
 .font-cartoon {
   font-family: 'Lilita One', cursive;
@@ -56,6 +61,8 @@ body {
   text-shadow: 1.5px 1.5px 0px rgba(0,0,0,0.5);
   box-shadow: 0 6px 0 #1c1917, 0 8px 12px rgba(0,0,0,0.4);
   cursor: pointer;
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .btn-cartoon:hover:not(:disabled) {
@@ -74,6 +81,10 @@ body {
   cursor: not-allowed;
 }
 
+.btn-cartoon:focus {
+  outline: none !important;
+}
+
 /* Wood Board Panels */
 .panel-wood {
   background: linear-gradient(135deg, #a16207 0%, #713f12 100%);
@@ -84,6 +95,10 @@ body {
     inset 0 -6px 0 rgba(0,0,0,0.4),
     0 12px 30px rgba(0,0,0,0.6),
     0 0 0 4px #fbbf24;
+  outline: none !important;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Stone Board Panels */
@@ -95,6 +110,10 @@ body {
     inset 0 4px 0 rgba(255,255,255,0.2),
     inset 0 -6px 0 rgba(0,0,0,0.45),
     0 12px 28px rgba(0,0,0,0.6);
+  outline: none !important;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
 }
 
 /* Cartoony Gradients */

@@ -2,7 +2,7 @@
  
 import { useAuth } from "@/game/hooks/useAuth";
 import { useGame } from "@/game/hooks/useGame";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import GameCanvas from "@/game/components/GameCanvas";
 import GameLoadingScreen from "@/game/components/GameLoadingScreen";
 import AuthPortal from "@/game/components/AuthPortal";
@@ -15,6 +15,10 @@ export default function LandingPage() {
   const [selectedTowerType, setSelectedTowerType] = useState<string>("basic");
   const [selectedTowerId, setSelectedTowerId] = useState<string | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isJoining, setIsJoining] = useState(false);
+  const [showWaveNotification, setShowWaveNotification] = useState(false);
+  
+  const lastWaveRef = useRef(0);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -22,9 +26,38 @@ export default function LandingPage() {
     if (code && user && !roomCode) {
       joinRoom(code);
     }
-  }, [user]);
+  }, [user, roomCode, joinRoom]);
+
+  useEffect(() => {
+    if (gameState && gameState.gameStatus === 'playing') {
+      if (gameState.wave > lastWaveRef.current) {
+        lastWaveRef.current = gameState.wave;
+        setShowWaveNotification(true);
+        
+        // Wave 1 stays until click, Waves 2+ auto-dismiss after 3s
+        if (gameState.wave > 1) {
+          const timer = setTimeout(() => {
+            setShowWaveNotification(false);
+          }, 3000);
+          return () => clearTimeout(timer);
+        }
+      }
+    }
+  }, [gameState?.wave, gameState?.gameStatus]);
+
+  const handleJoin = async () => {
+    if (!inputRoomCode) return;
+    setIsJoining(true);
+    await joinRoom(inputRoomCode);
+    setIsJoining(false);
+  };
 
   const handleTileClick = (x: number, y: number) => {
+    // Dismiss Wave 1 notification on first interaction
+    if (showWaveNotification && gameState?.wave === 1) {
+      setShowWaveNotification(false);
+    }
+
     const clickedTower = gameState?.towers.find(t => t.x === x && t.y === y);
     if (clickedTower) {
       setSelectedTowerId(clickedTower.id);
@@ -105,6 +138,20 @@ export default function LandingPage() {
               onTileClick={handleTileClick} 
             />
 
+            {/* WAVE NOTIFICATION OVERLAY */}
+            {showWaveNotification && (
+              <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none overflow-hidden">
+                <div className="animate-in fade-in zoom-in slide-in-from-top-20 duration-500 flex flex-col items-center">
+                   <div className="bg-yellow-400 text-amber-950 font-cartoon text-5xl md:text-7xl px-12 py-6 rounded-3xl border-8 border-amber-950 shadow-[0_0_50px_rgba(251,191,36,0.5)] rotate-[-2deg]">
+                      WAVE {gameState.wave}
+                   </div>
+                   <div className="mt-4 bg-amber-950 text-yellow-400 font-cartoon-sm text-xl px-8 py-2 rounded-full border-4 border-amber-600 animate-pulse uppercase tracking-[0.2em]">
+                      Sector Status: Contained
+                   </div>
+                </div>
+              </div>
+            )}
+
             {/* UPGRADE SCREEN OVERLAY */}
             {currentSelectedTower && (
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 panel-wood p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in zoom-in duration-200 z-30 min-w-[240px] border-4 border-amber-950">
@@ -165,12 +212,12 @@ export default function LandingPage() {
           
           {/* Header info (only visible in landscape / desktop sidebar) */}
           <div className="hidden landscape:block text-center mb-2 lg:mb-4 w-full">
-            <h1 className="text-md lg:text-2xl font-cartoon leading-none text-yellow-400 uppercase italic">VILLAGE DEFENSE</h1>
+            <h1 className="text-md lg:text-2xl font-cartoon leading-none text-yellow-400 uppercase italic text-shadow-none">VILLAGE DEFENSE</h1>
             <div className="text-[9px] font-black text-amber-300 uppercase tracking-widest mt-1 font-cartoon-flat">CODE: {roomCode}</div>
           </div>
 
-          <div className="hidden lg:block border-b-2 border-amber-900/40 pb-2 mb-3 text-center w-full">
-            <div className="text-[8px] font-black text-emerald-400 uppercase tracking-widest font-cartoon-flat">CHIEF</div>
+          <div className="hidden lg:block border-b-2 border-amber-900/40 pb-2 mb-3 text-center w-full font-cartoon-flat">
+            <div className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">CHIEF</div>
             <div className="text-[11px] font-bold text-amber-100 truncate">{user.displayName}</div>
           </div>
 
@@ -207,9 +254,9 @@ export default function LandingPage() {
                 <div className={`w-7 h-7 lg:w-9 lg:h-9 rounded-lg ${t.color} border flex items-center justify-center text-sm lg:text-base shrink-0`}>
                   {t.icon}
                 </div>
-                <div className="text-left font-cartoon-flat leading-tight font-cartoon-flat">
+                <div className="text-left font-cartoon-flat leading-tight">
                   <div className="text-[8px] lg:text-[10px] font-black text-amber-100 uppercase truncate max-w-[80px] lg:max-w-[120px]">{t.name.split(' ')[0]}</div>
-                  <div className="text-[8px] lg:text-[9px] text-yellow-400 font-bold font-cartoon-flat">🪙 {t.cost}</div>
+                  <div className="text-[8px] lg:text-[9px] text-yellow-400 font-bold">🪙 {t.cost}</div>
                 </div>
               </button>
             ))}
@@ -233,14 +280,14 @@ export default function LandingPage() {
   // 4. WAR ROOM LOBBY
   if (roomCode) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-950 text-white p-4 bg-jungle">
-        <div className="max-w-md w-full animate-in slide-in-from-bottom-8 duration-500">
+      <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-950 text-white p-4 bg-jungle outline-none">
+        <div className="max-w-md w-full animate-in slide-in-from-bottom-8 duration-500 outline-none">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-cartoon mb-2 tracking-tight uppercase italic text-yellow-400">WAR ROOM LOBBY</h1>
             <p className="text-yellow-100/60 text-xs uppercase tracking-widest font-cartoon-flat">WAR PATH ENVELOPE: <span className="text-yellow-400 font-cartoon-sm">{roomCode}</span></p>
           </div>
           
-          <div className="panel-wood p-8 md:p-10 shadow-2xl relative overflow-hidden border-4 border-amber-950">
+          <div className="panel-wood p-8 md:p-10 shadow-2xl relative overflow-hidden border-4 border-amber-950 outline-none">
             <div className="absolute -top-24 -left-24 w-48 h-48 bg-yellow-600/10 rounded-full blur-[60px]" />
             
             <h2 className="text-base font-cartoon-sm mb-6 flex items-center gap-3 text-yellow-400">
@@ -248,10 +295,10 @@ export default function LandingPage() {
               SOLDIERS ALIGNING:
             </h2>
             
-            <div className="space-y-3 mb-10">
+            <div className="space-y-3 mb-10 font-cartoon-flat">
               {gameState && Object.values(gameState.players).map((p) => (
                 <div key={p.id} className="flex items-center justify-between p-4 bg-amber-950/80 rounded-2xl border-2 border-amber-800">
-                  <div className="flex items-center gap-3 font-cartoon-flat">
+                  <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-amber-900 flex items-center justify-center text-[12px] border-2 border-amber-600 text-yellow-400">
                       🛡️
                     </div>
@@ -300,7 +347,7 @@ export default function LandingPage() {
     <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-950 text-white p-4 relative bg-jungle">
       <div className="absolute top-6 right-6 flex items-center gap-4 bg-amber-950/90 p-2.5 rounded-2xl border-3 border-amber-700 shadow-xl z-20">
         <div className="flex flex-col items-end pr-1.5 font-cartoon-flat">
-           <span className="text-[9px] text-amber-500 uppercase tracking-widest">ACTIVE CHIEF</span>
+           <span className="text-[9px] text-amber-500 uppercase tracking-widest font-bold">ACTIVE CHIEF</span>
            <span className="font-bold text-amber-100 text-sm tracking-tight">{user?.displayName}</span>
         </div>
         <button onClick={logout} className="bg-amber-900 hover:bg-red-900/20 text-yellow-400 hover:text-red-400 p-2 rounded-xl border-2 border-amber-600 transition-all cursor-pointer">
@@ -312,7 +359,7 @@ export default function LandingPage() {
         <h1 className="text-7xl md:text-8xl text-yellow-400 tracking-tight leading-none font-cartoon animate-bounce-slow">
           NEXUS
         </h1>
-        <p className="text-emerald-300 font-cartoon text-sm tracking-wider mt-2">VILLAGE TOWER DEFENSE</p>
+        <p className="text-emerald-300 font-cartoon text-sm tracking-wider mt-2 uppercase">VILLAGE TOWER DEFENSE</p>
         <div className="h-1.5 w-24 bg-yellow-500 mx-auto mt-3 rounded-full shadow-[0_0_12px_#fbbf24]" />
       </div>
 
@@ -323,20 +370,20 @@ export default function LandingPage() {
       )}
 
       <div className="flex flex-col gap-6 w-full max-w-sm md:max-w-4xl md:grid md:grid-cols-2">
-        <div className="panel-wood p-9 rounded-[2rem] border-4 border-amber-950 shadow-2xl flex flex-col justify-between">
+        <div className="panel-wood p-9 rounded-[2rem] border-4 border-amber-950 shadow-2xl flex flex-col justify-between outline-none">
           <div>
             <h2 className="text-3xl font-cartoon mb-2 text-yellow-400 uppercase italic">Host Village</h2>
             <p className="text-yellow-100/70 text-sm mb-8 leading-relaxed font-cartoon-flat">Establish a new clan battlefield post and deploy defensive towers.</p>
           </div>
           <button 
             onClick={createRoom}
-            className="w-full btn-cartoon btn-green py-5 rounded-3xl text-xl font-cartoon"
+            className="w-full btn-cartoon btn-green py-5 rounded-3xl text-xl font-cartoon outline-none"
           >
             CREATE WAR ROOM
           </button>
         </div>
 
-        <div className="panel-stone p-9 rounded-[2rem] border-4 border-zinc-950 shadow-2xl flex flex-col justify-between text-center md:text-left">
+        <div className="panel-stone p-9 rounded-[2rem] border-4 border-zinc-950 shadow-2xl flex flex-col justify-between text-center md:text-left outline-none">
           <div>
             <h2 className="text-3xl font-cartoon mb-2 text-yellow-400 uppercase italic">Join War</h2>
             <p className="text-stone-300 text-sm mb-6 leading-relaxed font-cartoon-flat">Enter a war room code to intercept an active operation.</p>
@@ -348,17 +395,17 @@ export default function LandingPage() {
                 maxLength={6}
                 value={inputRoomCode}
                 onChange={(e) => setInputRoomCode(e.target.value.toUpperCase())}
-                className="w-full bg-zinc-950 border-3 border-zinc-700 rounded-2xl p-4.5 text-center text-3xl tracking-[0.4em] font-cartoon uppercase focus:border-yellow-500 focus:outline-none transition-all placeholder:text-zinc-800 text-yellow-400 font-cartoon-flat"
+                className="w-full bg-zinc-950 border-3 border-zinc-700 rounded-2xl p-4.5 text-center text-3xl tracking-[0.4em] font-cartoon uppercase focus:border-yellow-500 focus:outline-none transition-all placeholder:text-zinc-800 text-yellow-400 font-cartoon-flat outline-none"
               />
             </div>
           </div>
           
           <button 
-            onClick={() => joinRoom(inputRoomCode)}
-            className="w-full btn-cartoon btn-gold py-5 rounded-3xl text-xl font-cartoon"
-            disabled={inputRoomCode.length < 4}
+            onClick={handleJoin}
+            disabled={inputRoomCode.length < 4 || isJoining}
+            className="w-full btn-cartoon btn-gold py-5 rounded-3xl text-xl font-cartoon outline-none"
           >
-            JOIN CLAN WAR
+            {isJoining ? "JOINING WAR..." : "JOIN CLAN WAR"}
           </button>
         </div>
       </div>
