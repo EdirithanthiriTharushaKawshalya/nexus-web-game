@@ -213,7 +213,7 @@ export default function LandingPage() {
       <div className="flex flex-col landscape:flex-row lg:flex-row items-center justify-center h-[100dvh] max-h-[100dvh] w-screen bg-emerald-900 text-white p-3 landscape:p-2 lg:p-4 select-none overflow-hidden bg-jungle gap-4 landscape:gap-4 lg:gap-6">
         
         {/* Left column: Canvas Board */}
-        <div className="flex flex-col items-center justify-center h-full landscape:h-full lg:h-full w-full max-w-[960px] landscape:w-auto relative">
+        <div className="flex flex-col items-center justify-center h-full landscape:h-full lg:h-full w-full max-w-[1200px] lg:max-w-none landscape:w-auto lg:w-auto relative">
           
           {/* Header (hidden in landscape mobile / desktop sidepanel to save space) */}
           <div className="mb-2.5 flex flex-row w-full justify-between items-center gap-2 px-2.5 landscape:hidden lg:hidden">
@@ -244,7 +244,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="relative w-full h-auto group max-h-[72dvh] landscape:max-h-[82dvh] lg:max-h-[82dvh]" style={{ aspectRatio: '16/10' }}>
+          <div className="relative w-full h-auto group max-h-[72dvh] landscape:max-h-[88dvh] lg:max-h-[88dvh]" style={{ aspectRatio: '16/10' }}>
             {/* FULLSCREEN TOGGLE */}
             <button 
               onClick={toggleFullscreen}

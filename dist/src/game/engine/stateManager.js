@@ -7,7 +7,7 @@ exports.GAME_PATH = [
     { x: 240, y: 80 },
     { x: 720, y: 80 },
     { x: 720, y: 480 },
-    { x: 960, y: 480 }
+    { x: 880, y: 480 }
 ];
 class StateManager {
     constructor() {
@@ -183,6 +183,10 @@ class StateManager {
         const gridX = Math.floor(x / 40) * 40, gridY = Math.floor(y / 40) * 40;
         // STRICT BLOCKING ON ROAD
         if (this.isPointOnPath(gridX, gridY))
+            return;
+        // Block placing on Town Hall (Nexus)
+        const nexus = exports.GAME_PATH[exports.GAME_PATH.length - 1];
+        if (Math.abs(gridX - nexus.x) <= 40 && Math.abs(gridY - nexus.y) <= 40)
             return;
         if (this.state.towers.some(t => t.x === gridX && t.y === gridY))
             return;

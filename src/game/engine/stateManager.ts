@@ -7,7 +7,7 @@ export const GAME_PATH = [
   { x: 240, y: 80 },
   { x: 720, y: 80 },
   { x: 720, y: 480 },
-  { x: 960, y: 480 }
+  { x: 880, y: 480 }
 ];
 
 export class StateManager {
@@ -174,6 +174,10 @@ export class StateManager {
     
     // STRICT BLOCKING ON ROAD
     if (this.isPointOnPath(gridX, gridY)) return;
+
+    // Block placing on Town Hall (Nexus)
+    const nexus = GAME_PATH[GAME_PATH.length - 1];
+    if (Math.abs(gridX - nexus.x) <= 40 && Math.abs(gridY - nexus.y) <= 40) return;
     
     if (this.state.towers.some(t => t.x === gridX && t.y === gridY)) return;
     const newTower: Tower = { id: Math.random().toString(36).substring(2, 9), ownerId: playerId, type: type as any, level: 1, x: gridX, y: gridY, range, damage, fireRate, lastShot: 0, upgradeCost: Math.floor(cost * 1.5) };
