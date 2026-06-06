@@ -91,13 +91,15 @@ export const useGame = (user: any) => {
 
     const stateRef = ref(rtdb, `rooms/${roomCode}/state`);
     const unsubscribe = onValue(stateRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data) {
-        setGameState(data);
-        // Sync local state manager if we are the host
-        if (isHost) {
-          // Note: In a real app, we'd want more fine-grained sync
+      try {
+        const data = snapshot.val();
+        if (data) {
+          setGameState(data);
+          // Sync local state manager so the Host has correct player data
+          stateManagerRef.current.syncState(data);
         }
+      } catch (e) {
+        console.error("Sync error:", e);
       }
     });
 
@@ -106,22 +108,20 @@ export const useGame = (user: any) => {
 
   // 4. Authoritative Host Loop
   useEffect(() => {
-    if (!isHost || !roomCode || !gameState || gameState.gameStatus !== 'playing') {
+    if (!isHost || !roomCode || !rtdb || !gameState || gameState.gameStatus !== 'playing') {
       if (gameLoopRef.current) clearInterval(gameLoopRef.current);
       return;
     }
 
-    // Initialize StateManager with current data once
-    stateManagerRef.current.startGame(); // This resets some things, careful
-
-    gameLoopRef.current = setInterval(() => {
-      const sm = stateManagerRef.current;
-      sm.update(1/30); // 30 FPS for sync efficiency
-      const newState = sm.getState();
-      
-      // Push to Firebase
-      if (rtdb) {
-        update(ref(rtdb, `rooms/${roomCode}/state`), newState);
+    gameLoopRef.current = setInterval(async () => {
+      try {
+        const sm = stateManagerRef.current;
+        sm.update(1/30);
+        const newState = sm.getState();
+        
+        await update(ref(rtdb!, `rooms/${roomCode}/state`), newState);
+      } catch (e) {
+        console.error("Host loop error:", e);
       }
     }, 1000 / 30);
 
@@ -131,20 +131,27 @@ export const useGame = (user: any) => {
   }, [isHost, roomCode, gameState?.gameStatus === 'playing']);
 
   const startGame = async () => {
-    if (!roomCode || !rtdb || !isHost) return;
-    await update(ref(rtdb, `rooms/${roomCode}/state`), { gameStatus: 'playing' });
+    try {
+      if (!roomCode || !rtdb || !isHost) return;
+      await update(ref(rtdb, `rooms/${roomCode}/state`), { gameStatus: 'playing' });
+    } catch (e) {
+      console.error("Start game error:", e);
+      setError("Failed to launch mission. Check Firebase rules.");
+    }
   };
 
   const placeTower = async (type: string, x: number, y: number) => {
-    if (!roomCode || !rtdb || !gameState) return;
-    
-    // We send a request by updating the towers array (simplified)
-    // In a more robust version, the host would validate this
-    const sm = stateManagerRef.current;
-    sm.placeTower(user.uid, type, x, y);
-    const newState = sm.getState();
-    
-    await update(ref(rtdb, `rooms/${roomCode}/state`), newState);
+    try {
+      if (!roomCode || !rtdb || !gameState) return;
+      
+      const sm = stateManagerRef.current;
+      sm.placeTower(user.uid, type, x, y);
+      const newState = sm.getState();
+      
+      await update(ref(rtdb, `rooms/${roomCode}/state`), newState);
+    } catch (e) {
+      console.error("Place tower error:", e);
+    }
   };
 
   return {
