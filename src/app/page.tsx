@@ -6,6 +6,8 @@ import { useState, useEffect } from "react";
 import GameCanvas from "@/game/components/GameCanvas";
 import GameLoadingScreen from "@/game/components/GameLoadingScreen";
 
+import AuthPortal from "@/game/components/AuthPortal";
+
 export default function LandingPage() {
   const { user, loading, logout, loginWithGoogle, authError } = useAuth();
   const { roomCode, gameState, error: gameError, createRoom, joinRoom, startGame, placeTower, isHost } = useGame(user);
@@ -29,47 +31,7 @@ export default function LandingPage() {
 
   // 1. AUTH SCREEN (Sign In / Welcome)
   if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white p-4 overflow-hidden relative">
-        {/* Background FX */}
-        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
-        
-        <div className="relative z-10 flex flex-col items-center max-w-sm w-full text-center">
-          <div className="mb-8">
-            <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-blue-400 to-blue-800 tracking-tighter italic leading-none">
-              NEXUS
-            </h1>
-            <div className="h-1 w-24 bg-blue-600 mx-auto mt-2 rounded-full shadow-[0_0_15px_#3b82f6]" />
-          </div>
-
-          <p className="text-xl mb-12 text-slate-300 font-light tracking-tight px-4 leading-snug">
-            Strategic Co-op Tower Defense. <br/>
-            <span className="text-blue-500 font-bold uppercase text-xs tracking-[0.2em] mt-2 block">Level 08 Authorization Required</span>
-          </p>
-
-          <button
-            onClick={async () => {
-              setIsConnecting(true);
-              await loginWithGoogle();
-              setIsConnecting(false);
-            }}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-black text-lg transition-all shadow-[0_10px_40px_-10px_rgba(37,99,235,0.5)] transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-4 group"
-          >
-            <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-blue-600 font-black text-xs">G</div>
-            INITIALIZE COMMAND
-          </button>
-
-          {authError && (
-            <div className="mt-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-xs font-bold uppercase tracking-widest animate-shake">
-              {authError}
-            </div>
-          )}
-
-          <p className="mt-12 text-slate-500 text-[10px] uppercase font-black tracking-[0.3em]">Secure link via Firebase Auth</p>
-        </div>
-      </div>
-    );
+    return <AuthPortal />;
   }
 
   // 2. GAME OVER VIEW

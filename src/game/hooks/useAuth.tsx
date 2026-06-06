@@ -6,6 +6,9 @@ import {
   GoogleAuthProvider, 
   signOut, 
   onAuthStateChanged, 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
   User 
 } from "firebase/auth";
 import { auth } from "@/lib/firebase/firebaseConfig";
@@ -14,6 +17,8 @@ interface AuthContextType {
   user: any | null;
   loading: boolean;
   loginWithGoogle: () => Promise<void>;
+  signupWithEmail: (email: string, pass: string, name: string) => Promise<void>;
+  loginWithEmail: (email: string, pass: string) => Promise<void>;
   logout: () => Promise<void>;
   isDevMode: boolean;
   authError: string | null;
@@ -63,6 +68,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const signupWithEmail = async (email: string, pass: string, name: string) => {
+    setAuthError(null);
+    if (isDevMode) {
+      setUser({ uid: "guest-mail", displayName: name, email });
+      return;
+    }
+    if (!auth) return;
+    try {
+      const res = await createUserWithEmailAndPassword(auth, email, pass);
+      await updateProfile(res.user, { displayName: name });
+    } catch (error: any) {
+      setAuthError(error.message);
+    }
+  };
+
+  const loginWithEmail = async (email: string, pass: string) => {
+    setAuthError(null);
+    if (isDevMode) {
+      setUser({ uid: "guest-mail", displayName: "Commander", email });
+      return;
+    }
+    if (!auth) return;
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+    } catch (error: any) {
+      setAuthError(error.message);
+    }
+  };
+
   const logout = async () => {
     if (isDevMode) {
       setUser(null);
@@ -78,7 +112,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, loginWithGoogle, logout, isDevMode }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      loginWithGoogle, 
+      signupWithEmail, 
+      loginWithEmail, 
+      logout, 
+      isDevMode, 
+      authError 
+    }}>
       {children}
     </AuthContext.Provider>
   );
