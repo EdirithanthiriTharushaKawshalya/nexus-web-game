@@ -12,41 +12,39 @@ exports.GAME_PATH = [
 class StateManager {
     constructor() {
         this.spawnTimer = 0;
-        this.waveDelay = 5; // Seconds between waves
+        this.waveDelay = 5;
         this.enemiesToSpawn = 0;
         this.state = {
             players: {},
             enemies: [],
             towers: [],
+            floatingTexts: [],
             gameStatus: 'lobby',
             wave: 0,
             nexusHealth: 100,
             maxNexusHealth: 100,
-            enemiesRemaining: 0
+            enemiesRemaining: 0,
+            screenShake: 0
         };
     }
     getState() {
         return this.state;
     }
     syncState(newState) {
-        // Only sync things that aren't managed by the local engine loop to avoid flickering
-        // For the host, we mainly need the player list and their gold
         this.state.players = newState.players || {};
         this.state.gameStatus = newState.gameStatus;
         if (newState.gameStatus === 'lobby') {
             this.state.enemies = [];
             this.state.towers = [];
+            this.state.floatingTexts = [];
             this.state.nexusHealth = 100;
             this.state.wave = 0;
+            this.state.screenShake = 0;
         }
     }
     addPlayer(id, name) {
         this.state.players[id] = {
-            id,
-            name,
-            lives: 20,
-            gold: 150, // Starting gold
-            score: 0
+            id, name, lives: 20, gold: 150, score: 0
         };
     }
     removePlayer(id) {
@@ -63,29 +61,39 @@ class StateManager {
         this.enemiesToSpawn = 5 + (this.state.wave * 3);
         this.state.enemiesRemaining = this.enemiesToSpawn;
         this.spawnTimer = 0;
-        console.log(`Starting Wave ${this.state.wave}: ${this.enemiesToSpawn} enemies`);
     }
     update(dt) {
         if (this.state.gameStatus !== 'playing')
             return;
+        // Juice: Screen Shake Decay
+        if (this.state.screenShake > 0) {
+            this.state.screenShake -= dt * 3;
+            if (this.state.screenShake < 0)
+                this.state.screenShake = 0;
+        }
+        // Juice: Floating Text Update
+        this.state.floatingTexts = this.state.floatingTexts.filter(ft => {
+            ft.life -= dt * 1.2;
+            ft.y -= dt * 25; // Drift up
+            return ft.life > 0;
+        });
         // 1. Spawning
         if (this.enemiesToSpawn > 0) {
             this.spawnTimer += dt;
-            if (this.spawnTimer >= 1.5) { // Spawn every 1.5s
+            if (this.spawnTimer >= 1.5) {
                 this.spawnEnemy();
                 this.enemiesToSpawn--;
                 this.spawnTimer = 0;
             }
         }
         else if (this.state.enemies.length === 0 && this.state.enemiesRemaining === 0) {
-            // Wave clear logic
             this.waveDelay -= dt;
             if (this.waveDelay <= 0) {
                 this.startNextWave();
                 this.waveDelay = 5;
             }
         }
-        // 2. Update Enemies (Pathfinding)
+        // 2. Enemies
         this.state.enemies.forEach(enemy => {
             const targetNode = exports.GAME_PATH[enemy.pathIndex + 1];
             if (!targetNode)
@@ -99,23 +107,18 @@ class StateManager {
                 enemy.pathIndex++;
                 enemy.progress = 0;
                 if (enemy.pathIndex >= exports.GAME_PATH.length - 1) {
-                    // Reached Nexus!
                     this.state.nexusHealth -= 10;
-                    enemy.health = 0; // Mark for removal
-                    console.log(`Nexus hit! Health: ${this.state.nexusHealth}`);
-                    if (this.state.nexusHealth <= 0) {
+                    enemy.health = 0;
+                    this.state.screenShake = 0.6; // TRIGGER SHAKE
+                    this.addFloatingText("CRITICAL HIT", enemy.x, enemy.y, "#ef4444");
+                    if (this.state.nexusHealth <= 0)
                         this.state.gameStatus = 'gameOver';
-                        console.log("GAME OVER: Nexus destroyed");
-                    }
                     return;
                 }
             }
-            const currentStart = exports.GAME_PATH[enemy.pathIndex];
-            const currentTarget = exports.GAME_PATH[enemy.pathIndex + 1];
-            enemy.x = currentStart.x + (currentTarget.x - currentStart.x) * enemy.progress;
-            enemy.y = currentStart.y + (currentTarget.y - currentStart.y) * enemy.progress;
+            enemy.x = startNode.x + (targetNode.x - startNode.x) * enemy.progress;
+            enemy.y = startNode.y + (targetNode.y - startNode.y) * enemy.progress;
         });
-        // 3. Remove dead enemies
         this.state.enemies = this.state.enemies.filter(e => {
             if (e.health <= 0) {
                 this.state.enemiesRemaining--;
@@ -123,12 +126,11 @@ class StateManager {
             }
             return true;
         });
-        // 4. Tower Targeting & Firing
+        // 3. Towers
         const now = Date.now();
         this.state.towers.forEach(tower => {
             if (now - tower.lastShot < (1000 / tower.fireRate))
                 return;
-            // Find closest enemy in range
             let closestEnemy = null;
             let minDistance = tower.range;
             this.state.enemies.forEach(enemy => {
@@ -139,53 +141,29 @@ class StateManager {
                 }
             });
             if (closestEnemy) {
-                closestEnemy.health -= tower.damage;
+                const target = closestEnemy;
+                target.health -= tower.damage;
                 tower.lastShot = now;
-                // If enemy died, reward the owner
-                if (closestEnemy.health <= 0) {
+                if (target.health <= 0) {
                     const owner = this.state.players[tower.ownerId];
                     if (owner) {
                         owner.gold += 20;
                         owner.score += 100;
+                        this.addFloatingText("+20", target.x, target.y, "#facc15");
                     }
                 }
             }
         });
     }
-    spawnEnemy() {
-        const rand = Math.random();
-        let type = 'basic';
-        let health = 40 + (this.state.wave * 12);
-        let speed = 60 + (this.state.wave * 2);
-        if (rand > 0.8) {
-            type = 'tank';
-            health *= 3;
-            speed *= 0.6;
-        }
-        else if (rand > 0.6) {
-            type = 'fast';
-            health *= 0.5;
-            speed *= 1.8;
-        }
-        const enemy = {
-            id: Math.random().toString(36).substring(2, 9),
-            type,
-            health: health,
-            maxHealth: health,
-            x: exports.GAME_PATH[0].x,
-            y: exports.GAME_PATH[0].y,
-            speed: speed,
-            pathIndex: 0,
-            progress: 0
-        };
-        this.state.enemies.push(enemy);
+    addFloatingText(text, x, y, color) {
+        this.state.floatingTexts.push({
+            id: Math.random().toString(36).substr(2, 5),
+            text, x, y, color, life: 1.0
+        });
     }
     placeTower(playerId, type, x, y) {
         const player = this.state.players[playerId];
-        let cost = 50;
-        let range = 150;
-        let damage = 15;
-        let fireRate = 1.5;
+        let cost = 50, range = 150, damage = 15, fireRate = 1.5;
         if (type === 'sniper') {
             cost = 120;
             range = 300;
@@ -200,10 +178,10 @@ class StateManager {
         }
         if (!player || player.gold < cost)
             return;
-        // Grid snapping (40px)
         const gridX = Math.floor(x / 40) * 40;
         const gridY = Math.floor(y / 40) * 40;
-        // Check if tower already exists there
+        if (this.isPointOnPath(gridX, gridY))
+            return;
         if (this.state.towers.some(t => t.x === gridX && t.y === gridY))
             return;
         const newTower = {
@@ -211,15 +189,61 @@ class StateManager {
             ownerId: playerId,
             type: type,
             level: 1,
-            x: gridX,
-            y: gridY,
-            range,
-            damage,
-            fireRate,
-            lastShot: 0
+            x: gridX, y: gridY,
+            range, damage, fireRate,
+            lastShot: 0,
+            upgradeCost: Math.floor(cost * 1.5)
         };
         this.state.towers.push(newTower);
         player.gold -= cost;
+        this.addFloatingText(`-${cost}`, gridX, gridY, "#ef4444");
+    }
+    upgradeTower(playerId, towerId) {
+        const tower = this.state.towers.find(t => t.id === towerId);
+        const player = this.state.players[playerId];
+        if (!tower || !player || player.gold < tower.upgradeCost)
+            return;
+        player.gold -= tower.upgradeCost;
+        tower.level++;
+        tower.damage *= 1.4;
+        tower.range *= 1.1;
+        tower.fireRate *= 1.1;
+        const oldCost = tower.upgradeCost;
+        tower.upgradeCost = Math.floor(oldCost * 1.8);
+        this.addFloatingText(`LVL ${tower.level}`, tower.x, tower.y, "#3b82f6");
+        this.addFloatingText(`-${oldCost}`, tower.x, tower.y + 20, "#ef4444");
+    }
+    isPointOnPath(gridX, gridY) {
+        const tx = gridX + 20, ty = gridY + 20;
+        for (let i = 0; i < exports.GAME_PATH.length - 1; i++) {
+            const s = exports.GAME_PATH[i], e = exports.GAME_PATH[i + 1];
+            if (s.y === e.y) {
+                const minX = Math.min(s.x, e.x), maxX = Math.max(s.x, e.x);
+                if (Math.abs(ty - (s.y + 20)) < 20 && tx >= minX && tx <= maxX + 40)
+                    return true;
+            }
+            if (s.x === e.x) {
+                const minY = Math.min(s.y, e.y), maxY = Math.max(s.y, e.y);
+                if (Math.abs(tx - (s.x + 20)) < 20 && ty >= minY && ty <= maxY + 40)
+                    return true;
+            }
+        }
+        return false;
+    }
+    spawnEnemy() {
+        const r = Math.random();
+        let type = 'basic', h = 40 + (this.state.wave * 12), s = 60 + (this.state.wave * 2);
+        if (r > 0.85) {
+            type = 'tank';
+            h *= 3.5;
+            s *= 0.55;
+        }
+        else if (r > 0.7) {
+            type = 'fast';
+            h *= 0.4;
+            s *= 2.0;
+        }
+        this.state.enemies.push({ id: Math.random().toString(36).substr(2, 7), type, health: h, maxHealth: h, x: exports.GAME_PATH[0].x, y: exports.GAME_PATH[0].y, speed: s, pathIndex: 0, progress: 0 });
     }
 }
 exports.StateManager = StateManager;
