@@ -1,26 +1,163 @@
+@import url('https://fonts.googleapis.com/css2?family=Lilita+One&family=Outfit:wght@400;700;900&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #14532d;
+  --foreground: #ffffff;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: 'Outfit', sans-serif;
+  --font-display: 'Lilita One', cursive;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* Clash of Clans Styles */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #14532d;
+  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+}
+
+/* Thick Cartoon Text Outlines */
+.font-cartoon {
+  font-family: 'Lilita One', cursive;
+  letter-spacing: 0.03em;
+  text-shadow: 
+    2px 2px 0px #000, 
+    -2px -2px 0px #000, 
+    2px -2px 0px #000, 
+    -2px 2px 0px #000,
+    3px 3px 0px rgba(0,0,0,0.4);
+}
+
+.font-cartoon-sm {
+  font-family: 'Lilita One', cursive;
+  letter-spacing: 0.02em;
+  text-shadow: 
+    1.5px 1.5px 0px #000, 
+    -1.5px -1.5px 0px #000, 
+    1.5px -1.5px 0px #000, 
+    -1.5px 1.5px 0px #000;
+}
+
+.font-cartoon-flat {
+  font-family: 'Lilita One', cursive;
+  letter-spacing: 0.02em;
+}
+
+/* 3D Cartoon Buttons */
+.btn-cartoon {
+  font-family: 'Lilita One', cursive;
+  position: relative;
+  transition: all 0.08s ease;
+  border: 3px solid #1c1917;
+  text-shadow: 1.5px 1.5px 0px rgba(0,0,0,0.5);
+  box-shadow: 0 6px 0 #1c1917, 0 8px 12px rgba(0,0,0,0.4);
+  cursor: pointer;
+}
+
+.btn-cartoon:hover:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: 0 5px 0 #1c1917, 0 7px 10px rgba(0,0,0,0.4);
+}
+
+.btn-cartoon:active:not(:disabled) {
+  transform: translateY(5px);
+  box-shadow: 0 1px 0 #1c1917, 0 2px 3px rgba(0,0,0,0.3);
+}
+
+.btn-cartoon:disabled {
+  filter: grayscale(80%);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Wood Board Panels */
+.panel-wood {
+  background: linear-gradient(135deg, #a16207 0%, #713f12 100%);
+  border: 4px solid #451a03;
+  border-radius: 28px;
+  box-shadow: 
+    inset 0 4px 0 rgba(255,255,255,0.25),
+    inset 0 -6px 0 rgba(0,0,0,0.4),
+    0 12px 30px rgba(0,0,0,0.6),
+    0 0 0 4px #fbbf24;
+}
+
+/* Stone Board Panels */
+.panel-stone {
+  background: linear-gradient(135deg, #78716c 0%, #44403c 100%);
+  border: 4px solid #1c1917;
+  border-radius: 28px;
+  box-shadow: 
+    inset 0 4px 0 rgba(255,255,255,0.2),
+    inset 0 -6px 0 rgba(0,0,0,0.45),
+    0 12px 28px rgba(0,0,0,0.6);
+}
+
+/* Cartoony Gradients */
+.btn-gold {
+  background: linear-gradient(180deg, #fef08a 0%, #eab308 50%, #ca8a04 100%);
+  color: #451a03;
+}
+
+.btn-green {
+  background: linear-gradient(180deg, #a7f3d0 0%, #22c55e 50%, #15803d 100%);
+  color: #ffffff;
+}
+
+.btn-blue {
+  background: linear-gradient(180deg, #bfdbfe 0%, #3b82f6 50%, #1d4ed8 100%);
+  color: #ffffff;
+}
+
+.btn-red {
+  background: linear-gradient(180deg, #fecaca 0%, #ef4444 50%, #b91c1c 100%);
+  color: #ffffff;
+}
+
+.btn-elixir {
+  background: linear-gradient(180deg, #fbcfe8 0%, #ec4899 50%, #be185d 100%);
+  color: #ffffff;
+}
+
+.text-gold {
+  color: #fbbf24;
+  text-shadow: 2px 2px 0px #000;
+}
+
+.text-elixir {
+  color: #f472b6;
+  text-shadow: 2px 2px 0px #000;
+}
+
+/* Waving Flag & Bouncing Animations */
+@keyframes flag-wave {
+  0%, 100% { transform: skewY(0deg); }
+  50% { transform: skewY(6deg); }
+}
+
+.animate-flag-wave {
+  animation: flag-wave 2s ease-in-out infinite;
+}
+
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 2.5s ease-in-out infinite;
+}
+
+/* Jungle grass background texture */
+.bg-jungle {
+  background-color: #14532d;
+  background-image: 
+    radial-gradient(#15803d 15%, transparent 16%),
+    radial-gradient(#166534 15%, transparent 16%);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
 }
