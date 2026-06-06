@@ -13,6 +13,143 @@ interface GameCanvasProps {
 export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const bgCanvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Pre-render static grass, road, stones, and trees onto an offscreen canvas once
+  const preRenderBackground = () => {
+    const bgCanvas = document.createElement("canvas");
+    bgCanvas.width = 800;
+    bgCanvas.height = 600;
+    const bgCtx = bgCanvas.getContext("2d");
+    if (!bgCtx) return null;
+
+    // 1. Lush Grassy Jungle Background
+    for (let tx = 0; tx < 20; tx++) {
+      for (let ty = 0; ty < 15; ty++) {
+        const x = tx * 40;
+        const y = ty * 40;
+        const seed = (tx * 37 + ty * 13) % 100;
+        
+        if (seed % 7 === 0) {
+          bgCtx.fillStyle = "#22c55e"; // darker grass green
+        } else if (seed % 11 === 0) {
+          bgCtx.fillStyle = "#4ade80"; // lighter grass green
+        } else {
+          bgCtx.fillStyle = "#15803d"; // main forest green
+        }
+        bgCtx.fillRect(x, y, 40, 40);
+
+        // Flowers
+        if (seed === 42) {
+          bgCtx.fillStyle = "#ffffff";
+          bgCtx.beginPath();
+          bgCtx.arc(x + 20, y + 20, 2.5, 0, Math.PI * 2);
+          bgCtx.arc(x + 16, y + 18, 1.8, 0, Math.PI * 2);
+          bgCtx.arc(x + 24, y + 22, 1.8, 0, Math.PI * 2);
+          bgCtx.arc(x + 22, y + 16, 1.8, 0, Math.PI * 2);
+          bgCtx.arc(x + 18, y + 24, 1.8, 0, Math.PI * 2);
+          bgCtx.fill();
+          bgCtx.fillStyle = "#eab308";
+          bgCtx.beginPath();
+          bgCtx.arc(x + 20, y + 20, 1.2, 0, Math.PI * 2);
+          bgCtx.fill();
+        } else if (seed === 88) {
+          // Mushroom
+          bgCtx.fillStyle = "#e2e8f0";
+          bgCtx.fillRect(x + 18, y + 22, 4, 6);
+          bgCtx.fillStyle = "#ec4899"; // elixir-pink cap
+          bgCtx.beginPath();
+          bgCtx.arc(x + 20, y + 22, 6, Math.PI, 0);
+          bgCtx.fill();
+          bgCtx.fillStyle = "#ffffff";
+          bgCtx.fillRect(x + 17, y + 18, 1.2, 1.2);
+          bgCtx.fillRect(x + 21, y + 19, 1.2, 1.2);
+        }
+      }
+    }
+
+    // 2. Dirt Road
+    bgCtx.strokeStyle = "#451a03";
+    bgCtx.lineWidth = 46;
+    bgCtx.lineCap = "round";
+    bgCtx.lineJoin = "round";
+    bgCtx.beginPath();
+    bgCtx.moveTo(GAME_PATH[0].x + 20, GAME_PATH[0].y + 20);
+    for (let i = 1; i < GAME_PATH.length; i++) {
+      bgCtx.lineTo(GAME_PATH[i].x + 20, GAME_PATH[i].y + 20);
+    }
+    bgCtx.stroke();
+
+    bgCtx.strokeStyle = "#854d0e";
+    bgCtx.lineWidth = 36;
+    bgCtx.beginPath();
+    bgCtx.moveTo(GAME_PATH[0].x + 20, GAME_PATH[0].y + 20);
+    for (let i = 1; i < GAME_PATH.length; i++) {
+      bgCtx.lineTo(GAME_PATH[i].x + 20, GAME_PATH[i].y + 20);
+    }
+    bgCtx.stroke();
+
+    // Stepping stones
+    bgCtx.fillStyle = "#78716c";
+    for (let i = 0; i < GAME_PATH.length - 1; i++) {
+      const p1 = GAME_PATH[i];
+      const p2 = GAME_PATH[i + 1];
+      const dist = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+      const steps = Math.floor(dist / 32);
+      for (let s = 0; s <= steps; s++) {
+        const ratio = s / steps;
+        const px = p1.x + 20 + (p2.x - p1.x) * ratio;
+        const py = p1.y + 20 + (p2.y - p1.y) * ratio;
+        const stoneSeed = (Math.floor(px) * 17 + Math.floor(py) * 13) % 100;
+        if (stoneSeed % 3 === 0) {
+          bgCtx.fillStyle = stoneSeed % 2 === 0 ? "#78716c" : "#57534e";
+          bgCtx.beginPath();
+          bgCtx.arc(px + (stoneSeed % 6 - 3), py + (stoneSeed % 8 - 4), 4 + (stoneSeed % 4), 0, Math.PI * 2);
+          bgCtx.fill();
+          bgCtx.strokeStyle = "#292524";
+          bgCtx.lineWidth = 0.8;
+          bgCtx.stroke();
+        }
+      }
+    }
+
+    // 3. Border Pine Trees
+    const drawTree = (tx: number, ty: number) => {
+      bgCtx.fillStyle = "#451a03";
+      bgCtx.fillRect(tx - 3, ty + 10, 6, 12);
+      bgCtx.fillStyle = "#15803d";
+      bgCtx.beginPath();
+      bgCtx.moveTo(tx, ty - 24);
+      bgCtx.lineTo(tx + 18, ty - 6);
+      bgCtx.lineTo(tx - 18, ty - 6);
+      bgCtx.closePath();
+      bgCtx.fill();
+
+      bgCtx.fillStyle = "#166534";
+      bgCtx.beginPath();
+      bgCtx.moveTo(tx, ty - 12);
+      bgCtx.lineTo(tx + 22, ty + 6);
+      bgCtx.lineTo(tx - 22, ty + 6);
+      bgCtx.closePath();
+      bgCtx.fill();
+
+      bgCtx.fillStyle = "#14532d";
+      bgCtx.beginPath();
+      bgCtx.moveTo(tx, ty);
+      bgCtx.lineTo(tx + 26, ty + 14);
+      bgCtx.lineTo(tx - 26, ty + 14);
+      bgCtx.closePath();
+      bgCtx.fill();
+    };
+
+    const trees = [
+      { x: 50, y: 50 }, { x: 120, y: 40 }, { x: 340, y: 50 }, { x: 420, y: 45 }, { x: 480, y: 50 },
+      { x: 50, y: 540 }, { x: 110, y: 535 }, { x: 270, y: 550 }, { x: 330, y: 540 }, { x: 480, y: 535 }
+    ];
+    trees.forEach(t => drawTree(t.x, t.y));
+
+    return bgCanvas;
+  };
 
   // Helper to find closest enemy in range for orientation
   const findTargetEnemy = (tower: Tower): Enemy | null => {
@@ -47,133 +184,13 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
         ctx.translate(dx, dy);
       }
 
-      // 1. Lush Grassy Jungle Background
-      for (let tx = 0; tx < 20; tx++) {
-        for (let ty = 0; ty < 15; ty++) {
-          const x = tx * 40;
-          const y = ty * 40;
-          const seed = (tx * 37 + ty * 13) % 100;
-          
-          if (seed % 7 === 0) {
-            ctx.fillStyle = "#22c55e"; // darker grass green
-          } else if (seed % 11 === 0) {
-            ctx.fillStyle = "#4ade80"; // lighter grass green
-          } else {
-            ctx.fillStyle = "#15803d"; // main vibrant forest green
-          }
-          ctx.fillRect(x, y, 40, 40);
-
-          // Render procedurally seeded flowers
-          if (seed === 42) {
-            ctx.fillStyle = "#ffffff";
-            ctx.beginPath();
-            ctx.arc(x + 20, y + 20, 2.5, 0, Math.PI * 2);
-            ctx.arc(x + 16, y + 18, 1.8, 0, Math.PI * 2);
-            ctx.arc(x + 24, y + 22, 1.8, 0, Math.PI * 2);
-            ctx.arc(x + 22, y + 16, 1.8, 0, Math.PI * 2);
-            ctx.arc(x + 18, y + 24, 1.8, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = "#eab308";
-            ctx.beginPath();
-            ctx.arc(x + 20, y + 20, 1.2, 0, Math.PI * 2);
-            ctx.fill();
-          } 
-          // Render procedurally seeded mushrooms
-          else if (seed === 88) {
-            ctx.fillStyle = "#e2e8f0"; // stem
-            ctx.fillRect(x + 18, y + 22, 4, 6);
-            ctx.fillStyle = "#ec4899"; // cute elixir-pink cap
-            ctx.beginPath();
-            ctx.arc(x + 20, y + 22, 6, Math.PI, 0);
-            ctx.fill();
-            ctx.fillStyle = "#ffffff"; // dots
-            ctx.fillRect(x + 17, y + 18, 1.2, 1.2);
-            ctx.fillRect(x + 21, y + 19, 1.2, 1.2);
-          }
-        }
+      // 1. Draw cached static background (grass, path, cobblestones, border trees)
+      if (!bgCanvasRef.current) {
+        bgCanvasRef.current = preRenderBackground();
       }
-
-      // 2. Cobblestone Dirt Road/Path
-      ctx.strokeStyle = "#451a03"; // dark dirt border
-      ctx.lineWidth = 46;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.beginPath();
-      ctx.moveTo(GAME_PATH[0].x + 20, GAME_PATH[0].y + 20);
-      for (let i = 1; i < GAME_PATH.length; i++) {
-        ctx.lineTo(GAME_PATH[i].x + 20, GAME_PATH[i].y + 20);
+      if (bgCanvasRef.current) {
+        ctx.drawImage(bgCanvasRef.current, 0, 0);
       }
-      ctx.stroke();
-
-      ctx.strokeStyle = "#854d0e"; // warm brown dirt path
-      ctx.lineWidth = 36;
-      ctx.beginPath();
-      ctx.moveTo(GAME_PATH[0].x + 20, GAME_PATH[0].y + 20);
-      for (let i = 1; i < GAME_PATH.length; i++) {
-        ctx.lineTo(GAME_PATH[i].x + 20, GAME_PATH[i].y + 20);
-      }
-      ctx.stroke();
-
-      // Stepping cobblestones along dirt road
-      ctx.fillStyle = "#78716c";
-      for (let i = 0; i < GAME_PATH.length - 1; i++) {
-        const p1 = GAME_PATH[i];
-        const p2 = GAME_PATH[i + 1];
-        const dist = Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
-        const steps = Math.floor(dist / 32);
-        for (let s = 0; s <= steps; s++) {
-          const ratio = s / steps;
-          const px = p1.x + 20 + (p2.x - p1.x) * ratio;
-          const py = p1.y + 20 + (p2.y - p1.y) * ratio;
-          const stoneSeed = (Math.floor(px) * 17 + Math.floor(py) * 13) % 100;
-          if (stoneSeed % 3 === 0) {
-            ctx.fillStyle = stoneSeed % 2 === 0 ? "#78716c" : "#57534e";
-            ctx.beginPath();
-            ctx.arc(px + (stoneSeed % 6 - 3), py + (stoneSeed % 8 - 4), 4 + (stoneSeed % 4), 0, Math.PI * 2);
-            ctx.fill();
-            // stone details
-            ctx.strokeStyle = "#292524";
-            ctx.lineWidth = 0.8;
-            ctx.stroke();
-          }
-        }
-      }
-
-      // 3. Cute Cartoon Pine Trees Bordering
-      const drawTree = (tx: number, ty: number) => {
-        ctx.fillStyle = "#451a03"; // trunk
-        ctx.fillRect(tx - 3, ty + 10, 6, 12);
-        
-        ctx.fillStyle = "#15803d"; // foliage bottom
-        ctx.beginPath();
-        ctx.moveTo(tx, ty - 24);
-        ctx.lineTo(tx + 18, ty - 6);
-        ctx.lineTo(tx - 18, ty - 6);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = "#166534"; // foliage mid
-        ctx.beginPath();
-        ctx.moveTo(tx, ty - 12);
-        ctx.lineTo(tx + 22, ty + 6);
-        ctx.lineTo(tx - 22, ty + 6);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = "#14532d"; // foliage bottom layer
-        ctx.beginPath();
-        ctx.moveTo(tx, ty);
-        ctx.lineTo(tx + 26, ty + 14);
-        ctx.lineTo(tx - 26, ty + 14);
-        ctx.closePath();
-        ctx.fill();
-      };
-
-      const trees = [
-        { x: 50, y: 50 }, { x: 120, y: 40 }, { x: 340, y: 50 }, { x: 420, y: 45 }, { x: 480, y: 50 },
-        { x: 50, y: 540 }, { x: 110, y: 535 }, { x: 270, y: 550 }, { x: 330, y: 540 }, { x: 480, y: 535 }
-      ];
-      trees.forEach(t => drawTree(t.x, t.y));
 
       // 4. Draw Town Hall (Clan Castle Core)
       const nexus = GAME_PATH[GAME_PATH.length - 1];
@@ -812,39 +829,6 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
         onClick={handleClick}
         className="w-full h-full cursor-crosshair"
       />
-      
-      {/* HUD Overlays - Clash of Clans Style */}
-      <div className="absolute top-2 left-2 md:top-4 md:left-4 flex flex-col gap-1.5 md:gap-2.5 pointer-events-none max-w-[50%] z-20">
-        {gameState.players && Object.values(gameState.players).map(player => (
-          <div key={player.id} className="bg-amber-950/90 border-2 border-amber-600 p-2 md:p-3.5 rounded-xl md:rounded-2xl flex flex-col shadow-xl backdrop-blur-sm">
-            <div className="flex items-center gap-1.5 md:gap-2">
-              <span className="text-[12px] font-black text-amber-500">🛡️</span>
-              <span className="text-[10px] md:text-sm font-black text-amber-100 uppercase tracking-tighter truncate font-cartoon-flat">{player.name}</span>
-            </div>
-            <div className="flex gap-3 mt-1.5 md:mt-2.5 font-cartoon-sm">
-              <span className="text-yellow-400 text-[9px] md:text-xs">🪙 {player.gold}</span>
-              <span className="text-blue-400 text-[9px] md:text-xs">🏆 {player.score}</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Town Hall Elixir Integrity Bar */}
-      <div className="absolute bottom-3 md:bottom-6 left-1/2 -translate-x-1/2 w-44 md:w-68 h-4.5 md:h-6 bg-amber-950 border-3 border-amber-700 rounded-full overflow-hidden shadow-xl flex items-center p-0.5 z-20">
-        <div 
-          className="h-full bg-gradient-to-r from-pink-500 via-pink-400 to-fuchsia-500 rounded-full transition-all duration-300"
-          style={{ width: `${Math.max(0, (gameState.nexusHealth / gameState.maxNexusHealth) * 100)}%` }}
-        />
-        <div className="absolute inset-0 flex items-center justify-center text-[8px] md:text-xs font-black tracking-widest text-white uppercase drop-shadow-md font-cartoon">
-          ELIXIR CORE: {gameState.nexusHealth}%
-        </div>
-      </div>
-
-      {/* Wave Raid Counter */}
-      <div className="absolute top-2 right-2 md:top-4 md:right-4 bg-amber-950 border-3 border-amber-600 px-3 md:px-5 py-1 md:py-2 rounded-xl md:rounded-2xl text-right shadow-xl z-20">
-        <span className="text-amber-500 text-[8px] md:text-[10px] font-black uppercase tracking-widest block font-cartoon-flat">Raid Wave</span>
-        <div className="text-base md:text-2xl font-black text-white leading-none font-cartoon">{gameState.wave}</div>
-      </div>
     </div>
   );
 }

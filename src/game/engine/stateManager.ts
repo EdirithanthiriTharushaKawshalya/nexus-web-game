@@ -7,7 +7,7 @@ export const GAME_PATH = [
   { x: 200, y: 100 },
   { x: 600, y: 100 },
   { x: 600, y: 500 },
-  { x: 800, y: 500 }
+  { x: 740, y: 500 }
 ];
 
 export class StateManager {
