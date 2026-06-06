@@ -220,7 +220,7 @@ export class StateManager {
     const newTower: Tower = {
       id: Math.random().toString(36).substring(2, 9),
       ownerId: playerId,
-      type: type as any,
+      type: type as 'basic' | 'sniper' | 'pulse',
       level: 1,
       x: gridX,
       y: gridY,

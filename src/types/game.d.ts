@@ -22,7 +22,7 @@ export interface Enemy {
 export interface Tower {
   id: string;
   ownerId: string;
-  type: 'basic' | 'sniper' | 'aoe';
+  type: 'basic' | 'sniper' | 'pulse';
   level: number;
   x: number;
   y: number;
