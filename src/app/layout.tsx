@@ -5,6 +5,9 @@ import "@/app/globals.css";
 export const metadata = {
   title: "Nexus - Multiplayer Tower Defense",
   description: "Cooperative real-time strategy defense",
+  icons: {
+    icon: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
