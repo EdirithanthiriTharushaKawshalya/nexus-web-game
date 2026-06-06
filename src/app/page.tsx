@@ -82,87 +82,111 @@ export default function LandingPage() {
   // 3. GAME VIEW (Active Raid)
   if (gameState && gameState.gameStatus === 'playing') {
     return (
-      <div className="flex flex-col items-center justify-start lg:justify-center min-h-screen bg-emerald-900 text-white p-2 md:p-6 select-none overflow-hidden bg-jungle">
-        <div className="mb-3 flex justify-between w-full max-w-[800px] items-center px-2">
-          <div>
-            <h1 className="text-2xl md:text-3xl font-cartoon leading-none text-yellow-400 uppercase italic">VILLAGE UNDER RAID</h1>
-          </div>
-          <div className="flex items-center gap-3">
-             <div className="hidden md:block text-right">
-                <div className="text-[9px] font-black text-emerald-400 uppercase tracking-widest font-cartoon-flat">CHIEF COMMANDER</div>
-                <div className="text-xs font-bold text-white">{user.displayName}</div>
-             </div>
-             <div className="bg-amber-950 border-2 border-amber-600 px-3 py-1.5 rounded-xl text-xs font-cartoon flex items-center gap-2">
-                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-yellow-400 tracking-wider font-cartoon-sm">{roomCode}</span>
-             </div>
-          </div>
-        </div>
+      <div className="flex flex-col landscape:flex-row lg:flex-row items-center justify-center min-h-screen landscape:h-screen landscape:max-h-screen lg:h-screen lg:max-h-screen w-full bg-emerald-900 text-white p-3 landscape:p-2 lg:p-4 select-none overflow-hidden bg-jungle gap-4 landscape:gap-4 lg:gap-6">
         
-        <div className="relative w-full max-w-[800px] group">
-          <GameCanvas 
-            gameState={gameState} 
-            selectedTowerId={selectedTowerId}
-            onTileClick={handleTileClick} 
-          />
-
-          {/* UPGRADE SCREEN OVERLAY */}
-          {currentSelectedTower && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 panel-wood p-8 shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in zoom-in duration-200 z-30 min-w-[280px] border-4 border-amber-950">
-               <div className="text-center mb-6">
-                  <div className={`w-14 h-14 mx-auto rounded-2xl flex items-center justify-center font-cartoon text-3xl mb-4 shadow-lg border-2 border-amber-900 ${
-                    currentSelectedTower.type === 'sniper' ? 'bg-purple-700 text-purple-100' : currentSelectedTower.type === 'pulse' ? 'bg-zinc-700 text-zinc-100' : 'bg-amber-700 text-amber-100'
-                  }`}>
-                    {currentSelectedTower.type === 'sniper' ? '🧙‍♂️' : currentSelectedTower.type === 'pulse' ? '💣' : '🏹'}
-                  </div>
-                  <h3 className="font-cartoon uppercase tracking-widest text-base text-yellow-400">Unit LVL {currentSelectedTower.level}</h3>
-                  <p className="text-[10px] text-amber-300 font-bold mt-1 uppercase tracking-tighter">BLACKSMITH UPGRADE WINDOW</p>
-               </div>
-               
-               <div className="space-y-2 mb-8 font-cartoon-sm">
-                  <div className="flex justify-between items-center bg-amber-950/80 p-3 rounded-xl border border-amber-800">
-                     <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest px-2">DAMAGE</span>
-                     <span className="text-red-400 px-2">💥 {Math.floor(currentSelectedTower.damage)}</span>
-                  </div>
-                  <div className="flex justify-between items-center bg-amber-950/80 p-3 rounded-xl border border-amber-800">
-                     <span className="text-[10px] font-black text-amber-500 uppercase tracking-widest px-2">RANGE</span>
-                     <span className="text-blue-400 px-2">📏 {Math.floor(currentSelectedTower.range)}</span>
-                  </div>
-               </div>
-
-               <div className="flex flex-col gap-3">
-                  <button 
-                    onClick={() => {
-                      upgradeTower(currentSelectedTower.id);
-                      setSelectedTowerId(null);
-                    }}
-                    disabled={(gameState.players[user.uid]?.gold || 0) < currentSelectedTower.upgradeCost}
-                    className="w-full btn-cartoon btn-gold py-4 rounded-xl text-sm font-cartoon uppercase tracking-wider"
-                  >
-                    Upgrade // 🪙{currentSelectedTower.upgradeCost}
-                  </button>
-                  <button 
-                    onClick={() => setSelectedTowerId(null)}
-                    className="w-full py-2 text-amber-300 hover:text-white transition-colors text-xs font-cartoon-sm uppercase tracking-widest"
-                  >
-                    Cancel
-                  </button>
-               </div>
-            </div>
-          )}
+        {/* Left column: Canvas Board */}
+        <div className="flex flex-col items-center justify-center h-full landscape:h-full lg:h-full w-full max-w-[800px] landscape:w-auto relative">
           
-          {gameState.towers.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-4">
-              <div className="bg-amber-950/95 border-3 border-amber-600 text-yellow-400 px-6 py-4 rounded-2xl font-cartoon text-sm animate-bounce shadow-2xl tracking-wider text-center">
-                👉 TAP GRASS TO BUILD DEFENSES
-              </div>
+          {/* Header (hidden in landscape mobile / desktop sidepanel to save space) */}
+          <div className="mb-3 flex justify-between w-full items-center px-2 landscape:hidden lg:hidden">
+            <div>
+              <h1 className="text-2xl font-cartoon leading-none text-yellow-400 uppercase italic">VILLAGE RAID</h1>
             </div>
-          )}
+            <div className="bg-amber-950 border-2 border-amber-600 px-3 py-1.5 rounded-xl text-xs font-cartoon flex items-center gap-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-yellow-400 tracking-wider font-cartoon-sm">{roomCode}</span>
+            </div>
+          </div>
+
+          <div className="relative w-full h-full landscape:w-auto landscape:h-full aspect-[4/3] group max-h-[70vh] landscape:max-h-[88vh] lg:max-h-[88vh]">
+            <GameCanvas 
+              gameState={gameState} 
+              selectedTowerId={selectedTowerId}
+              onTileClick={handleTileClick} 
+            />
+
+            {/* UPGRADE SCREEN OVERLAY */}
+            {currentSelectedTower && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 panel-wood p-6 shadow-[0_0_50px_rgba(0,0,0,0.8)] animate-in zoom-in duration-200 z-30 min-w-[240px] border-4 border-amber-950">
+                 <div className="text-center mb-4">
+                    <div className={`w-12 h-12 mx-auto rounded-2xl flex items-center justify-center text-2xl mb-3 shadow-lg border-2 border-amber-900 ${
+                      currentSelectedTower.type === 'sniper' ? 'bg-purple-700' : currentSelectedTower.type === 'pulse' ? 'bg-zinc-700' : 'bg-amber-700'
+                    }`}>
+                      {currentSelectedTower.type === 'sniper' ? '🧙‍♂️' : currentSelectedTower.type === 'pulse' ? '💣' : '🏹'}
+                    </div>
+                    <h3 className="font-cartoon uppercase text-sm text-yellow-400">Unit LVL {currentSelectedTower.level}</h3>
+                    <p className="text-[9px] text-amber-300 font-bold mt-0.5 uppercase tracking-wider">UPGRADE STATION</p>
+                 </div>
+                 
+                 <div className="space-y-1.5 mb-5 font-cartoon-sm text-[10px]">
+                    <div className="flex justify-between items-center bg-amber-950/80 px-3 py-2 rounded-xl border border-amber-800">
+                       <span className="text-amber-500 uppercase">DAMAGE</span>
+                       <span className="text-red-400">💥 {Math.floor(currentSelectedTower.damage)}</span>
+                    </div>
+                    <div className="flex justify-between items-center bg-amber-950/80 px-3 py-2 rounded-xl border border-amber-800">
+                       <span className="text-amber-500 uppercase">RANGE</span>
+                       <span className="text-blue-400">📏 {Math.floor(currentSelectedTower.range)}</span>
+                    </div>
+                 </div>
+
+                 <div className="flex flex-col gap-2">
+                    <button 
+                      onClick={() => {
+                        upgradeTower(currentSelectedTower.id);
+                        setSelectedTowerId(null);
+                      }}
+                      disabled={(gameState.players[user.uid]?.gold || 0) < currentSelectedTower.upgradeCost}
+                      className="w-full btn-cartoon btn-gold py-3 rounded-xl text-xs font-cartoon uppercase tracking-wider"
+                    >
+                      Upgrade // 🪙{currentSelectedTower.upgradeCost}
+                    </button>
+                    <button 
+                      onClick={() => setSelectedTowerId(null)}
+                      className="w-full py-1 text-amber-300 hover:text-white transition-colors text-[10px] font-cartoon-sm uppercase"
+                    >
+                      Cancel
+                    </button>
+                 </div>
+              </div>
+            )}
+            
+            {gameState.towers.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-4 z-20">
+                <div className="bg-amber-950/95 border-3 border-amber-600 text-yellow-400 px-6 py-4 rounded-2xl font-cartoon text-sm animate-bounce shadow-2xl tracking-wider text-center">
+                  👉 TAP GRASS TO BUILD DEFENSES
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* SHOP MENUS */}
-        <div className="mt-4 w-full max-w-[800px] flex flex-col md:flex-row gap-3 md:gap-5">
-          <div className="grid grid-cols-3 gap-2 flex-1">
+        {/* Right column: Wooden Sidebar (Shop & Status Dashboard) */}
+        <div className="w-full landscape:w-[220px] lg:w-[260px] flex flex-row landscape:flex-col lg:flex-col justify-between panel-wood border-4 border-amber-950 p-3 landscape:p-3 lg:p-4 rounded-3xl h-auto landscape:h-full landscape:max-h-[88vh] lg:h-full lg:max-h-[88vh] gap-3 landscape:gap-0">
+          
+          {/* Header info (only visible in landscape / desktop sidebar) */}
+          <div className="hidden landscape:block text-center mb-2 lg:mb-4 w-full">
+            <h1 className="text-md lg:text-2xl font-cartoon leading-none text-yellow-400 uppercase italic">VILLAGE DEFENSE</h1>
+            <div className="text-[9px] font-black text-amber-300 uppercase tracking-widest mt-1 font-cartoon-flat">CODE: {roomCode}</div>
+          </div>
+
+          <div className="hidden lg:block border-b-2 border-amber-900/40 pb-2 mb-3 text-center w-full">
+            <div className="text-[8px] font-black text-emerald-400 uppercase tracking-widest font-cartoon-flat">CHIEF</div>
+            <div className="text-[11px] font-bold text-amber-100 truncate">{user.displayName}</div>
+          </div>
+
+          {/* Gold Reserves Dashboard */}
+          <div className="bg-amber-950 border-2 border-amber-800 p-2.5 rounded-xl flex items-center justify-center gap-2 mb-0 landscape:mb-4 lg:mb-4 shadow-inner flex-1 landscape:flex-none">
+            <span className="text-sm lg:text-lg">🪙</span>
+            <div className="flex flex-col items-center justify-center font-cartoon-flat leading-none">
+              <span className="text-[8px] text-amber-500 uppercase tracking-widest font-bold hidden lg:block">GOLD RESERVES</span>
+              <span className="text-sm lg:text-lg font-cartoon text-yellow-400">
+                {gameState.players[user?.uid]?.gold || 0}
+              </span>
+            </div>
+          </div>
+
+          {/* Sidebar shop items */}
+          <div className="flex flex-row landscape:flex-col lg:flex-col gap-2 flex-[2] landscape:flex-none justify-center landscape:justify-start">
             {[
               { id: 'basic', name: 'ARCHER TOWER', cost: 50, color: 'bg-green-700 border-green-800 text-green-100', icon: '🏹' },
               { id: 'sniper', name: 'WIZARD TOWER', cost: 120, color: 'bg-purple-700 border-purple-800 text-purple-100', icon: '🧙‍♂️' },
@@ -174,30 +198,34 @@ export default function LandingPage() {
                   setSelectedTowerType(t.id);
                   setSelectedTowerId(null);
                 }}
-                className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 md:gap-4 p-3.5 rounded-2xl border-3 transition-all ${
+                className={`flex flex-1 landscape:flex-none items-center gap-1.5 lg:gap-3 p-1.5 lg:p-2 rounded-xl border-2 transition-all btn-cartoon ${
                   selectedTowerType === t.id && !selectedTowerId
-                    ? 'bg-amber-950 border-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.4)]' 
-                    : 'bg-amber-950/80 border-amber-800 hover:border-amber-700'
+                    ? 'bg-amber-950 border-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.4)]' 
+                    : 'bg-amber-900 border-amber-950'
                 }`}
               >
-                <div className={`w-10 h-10 md:w-12 md:h-12 ${t.color} border-2 rounded-xl flex items-center justify-center text-xl shadow-md`}>
+                <div className={`w-7 h-7 lg:w-9 lg:h-9 rounded-lg ${t.color} border flex items-center justify-center text-sm lg:text-base shrink-0`}>
                   {t.icon}
                 </div>
-                <div className="text-center md:text-left font-cartoon-flat">
-                  <div className="text-[10px] md:text-xs font-black tracking-wide text-amber-100">{t.name}</div>
-                  <div className="text-[10px] text-yellow-400 font-bold tracking-wide mt-0.5">🪙 {t.cost}</div>
+                <div className="text-left font-cartoon-flat leading-tight font-cartoon-flat">
+                  <div className="text-[8px] lg:text-[10px] font-black text-amber-100 uppercase truncate max-w-[80px] lg:max-w-[120px]">{t.name.split(' ')[0]}</div>
+                  <div className="text-[8px] lg:text-[9px] text-yellow-400 font-bold font-cartoon-flat">🪙 {t.cost}</div>
                 </div>
               </button>
             ))}
           </div>
-          
-          <div className="bg-amber-950 border-3 border-amber-600 p-4 rounded-2xl flex md:flex-col justify-between md:justify-center items-center md:min-w-[140px] shadow-xl">
-            <div className="text-[10px] text-amber-500 uppercase tracking-widest md:mb-1 px-2 text-center font-cartoon-flat">GOLD RESERVES</div>
-            <div className="text-2xl font-cartoon text-yellow-400 flex items-center gap-1.5">
-              🪙 {gameState.players[user?.uid]?.gold || 0}
-            </div>
+
+          {/* Abort button */}
+          <div className="mt-0 landscape:mt-4 lg:mt-4 w-full flex-1 landscape:flex-none flex items-center">
+            <button 
+              onClick={() => window.location.reload()} 
+              className="w-full btn-cartoon btn-red py-2 lg:py-2.5 rounded-xl text-[9px] lg:text-xs font-cartoon"
+            >
+              ABORT RAID
+            </button>
           </div>
         </div>
+
       </div>
     );
   }

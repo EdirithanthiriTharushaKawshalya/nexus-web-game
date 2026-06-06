@@ -804,7 +804,7 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
   };
 
   return (
-    <div ref={containerRef} className="relative w-full max-w-[800px] aspect-[4/3] border-4 md:border-[6px] border-amber-950 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl bg-emerald-950">
+    <div ref={containerRef} className="relative w-full landscape:w-auto landscape:h-full max-w-[800px] aspect-[4/3] border-4 md:border-[6px] border-amber-950 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl bg-emerald-950">
       <canvas
         ref={canvasRef}
         width={800}
