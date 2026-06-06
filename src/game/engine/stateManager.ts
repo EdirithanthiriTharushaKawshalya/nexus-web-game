@@ -227,6 +227,9 @@ export class StateManager {
     const gridX = Math.floor(x / 40) * 40;
     const gridY = Math.floor(y / 40) * 40;
 
+    // Check if tower is on the path (the road)
+    if (this.isPointOnPath(gridX, gridY)) return;
+
     // Check if tower already exists there
     if (this.state.towers.some(t => t.x === gridX && t.y === gridY)) return;
 
@@ -245,5 +248,36 @@ export class StateManager {
 
     this.state.towers.push(newTower);
     player.gold -= cost;
+  }
+
+  private isPointOnPath(gridX: number, gridY: number): boolean {
+    const tileCenterX = gridX + 20;
+    const tileCenterY = gridY + 20;
+
+    for (let i = 0; i < GAME_PATH.length - 1; i++) {
+      const start = GAME_PATH[i];
+      const end = GAME_PATH[i + 1];
+
+      // Buffer of 20px (half path width)
+      const buffer = 20;
+
+      // Horizontal segment
+      if (start.y === end.y) {
+        const minX = Math.min(start.x, end.x);
+        const maxX = Math.max(start.x, end.x);
+        if (Math.abs(tileCenterY - (start.y + 20)) < buffer && tileCenterX >= minX && tileCenterX <= maxX + 40) {
+          return true;
+        }
+      }
+      // Vertical segment
+      if (start.x === end.x) {
+        const minY = Math.min(start.y, end.y);
+        const maxY = Math.max(start.y, end.y);
+        if (Math.abs(tileCenterX - (start.x + 20)) < buffer && tileCenterY >= minY && tileCenterY <= maxY + 40) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
