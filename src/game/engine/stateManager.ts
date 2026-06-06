@@ -36,16 +36,13 @@ export class StateManager {
   }
 
   public syncState(newState: GameState) {
-    this.state.players = newState.players || {};
-    this.state.gameStatus = newState.gameStatus;
-    if (newState.gameStatus === 'lobby') {
-      this.state.enemies = [];
-      this.state.towers = [];
-      this.state.floatingTexts = [];
-      this.state.nexusHealth = 100;
-      this.state.wave = 0;
-      this.state.screenShake = 0;
-    }
+    this.state = {
+      ...newState,
+      players: newState.players || {},
+      enemies: newState.enemies || [],
+      towers: newState.towers || [],
+      floatingTexts: newState.floatingTexts || []
+    };
   }
 
   public addPlayer(id: string, name: string) {

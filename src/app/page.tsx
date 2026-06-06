@@ -45,11 +45,16 @@ export default function LandingPage() {
     }
   };
 
+  const joiningRef = useRef(false);
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const code = urlParams.get('room');
-    if (code && user && !roomCode) {
-      joinRoom(code);
+    if (code && user && !roomCode && !joiningRef.current) {
+      joiningRef.current = true;
+      joinRoom(code).finally(() => {
+        joiningRef.current = false;
+      });
     }
   }, [user, roomCode, joinRoom]);
 
@@ -72,9 +77,9 @@ export default function LandingPage() {
 
   const handleJoin = async () => {
     if (!inputRoomCode) return;
-    setIsJoining(true);
+    setIsConnecting(true);
     await joinRoom(inputRoomCode);
-    setIsJoining(false);
+    setIsConnecting(false);
   };
 
   const handleTileClick = (x: number, y: number) => {
@@ -443,21 +448,21 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Clan Members list (only on desktop sidebar) */}
-          <div className="hidden lg:flex flex-col gap-1.5 w-full max-h-[140px] overflow-y-auto mb-3 border-b-2 border-amber-900/40 pb-3 scrollbar-thin">
-            <div className="text-[8px] font-black text-amber-300 uppercase tracking-widest mb-1 text-center font-cartoon-flat">CLAN MEMBERS</div>
+          {/* Clan Members list (visible on both mobile & desktop sidebar) */}
+          <div className="flex flex-col gap-1 w-full max-h-[80px] landscape:max-h-[100px] lg:max-h-[140px] overflow-y-auto mb-2 lg:mb-3 border-b-2 border-amber-900/40 pb-2 lg:pb-3 scrollbar-thin">
+            <div className="text-[7px] lg:text-[8px] font-black text-amber-300 uppercase tracking-widest mb-1 text-center font-cartoon-flat">CLAN MEMBERS</div>
             {gameState.players && Object.values(gameState.players).map(player => (
               <div 
                 key={player.id} 
-                className={`bg-amber-950/90 border-2 ${player.id === user.uid ? 'border-yellow-400 shadow-[inset_0_0_8px_rgba(234,179,8,0.2)]' : 'border-amber-900/60'} p-2 rounded-xl flex flex-col font-cartoon-flat`}
+                className={`bg-amber-950/90 border-2 ${player.id === user.uid ? 'border-yellow-400 shadow-[inset_0_0_8px_rgba(234,179,8,0.2)]' : 'border-amber-900/60'} p-1.5 lg:p-2 rounded-xl flex flex-col font-cartoon-flat`}
               >
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold text-amber-100 truncate pr-2 max-w-[100px] lg:max-w-[130px]">{player.name}</span>
+                  <span className="text-[9px] lg:text-[10px] font-bold text-amber-100 truncate pr-2 max-w-[80px] landscape:max-w-[100px] lg:max-w-[130px]">{player.name}</span>
                   {player.id === user.uid && (
-                    <span className="text-[7px] font-cartoon bg-green-600 border border-green-400 px-1 rounded uppercase tracking-wider text-white">YOU</span>
+                    <span className="text-[6px] lg:text-[7px] font-cartoon bg-green-600 border border-green-400 px-1 rounded uppercase tracking-wider text-white">YOU</span>
                   )}
                 </div>
-                <div className="flex justify-between items-center mt-1 text-[9px] font-bold">
+                <div className="flex justify-between items-center mt-0.5 lg:mt-1 text-[8px] lg:text-[9px] font-bold">
                   <span className="text-yellow-400">🪙 {player.gold}</span>
                   <span className="text-blue-400">🏆 {player.score}</span>
                 </div>
@@ -650,7 +655,11 @@ export default function LandingPage() {
             <p className="text-yellow-100/70 text-[10px] md:text-sm mb-4 md:mb-8 leading-relaxed font-cartoon-flat landscape:hidden lg:block">Establish a new clan battlefield post and deploy defensive towers.</p>
           </div>
           <button 
-            onClick={createRoom}
+            onClick={async () => {
+              setIsConnecting(true);
+              await createRoom();
+              setIsConnecting(false);
+            }}
             className="w-full btn-cartoon btn-green py-2 landscape:py-1.5 lg:py-5 lg:landscape:py-5 md:py-5 rounded-2xl md:rounded-3xl text-base landscape:text-xs lg:text-xl lg:landscape:text-xl md:text-xl font-cartoon outline-none"
           >
             CREATE WAR ROOM

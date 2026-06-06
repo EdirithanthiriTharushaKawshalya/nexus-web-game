@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { rtdb } from "@/lib/firebase/firebaseConfig";
 import { ref, onValue, set, update, onDisconnect, remove, get, push, onChildAdded } from "firebase/database";
 import { GameState, Player, Tower } from "@/types/game";
@@ -16,7 +16,7 @@ export const useGame = (user: any) => {
   const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
 
   // 1. Create Room (Become Host)
-  const createRoom = async () => {
+  const createRoom = useCallback(async () => {
     if (!rtdb || !user) return;
     try {
       const code = Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -56,10 +56,10 @@ export const useGame = (user: any) => {
       console.error("Create room error:", e);
       setError("Failed to initialize sector.");
     }
-  };
+  }, [user]);
 
   // 2. Join Room
-  const joinRoom = async (code: string) => {
+  const joinRoom = useCallback(async (code: string) => {
     if (!rtdb || !user) return;
     try {
       const roomRef = ref(rtdb, `rooms/${code}`);
@@ -95,7 +95,7 @@ export const useGame = (user: any) => {
       console.error("Join room error:", e);
       setError("Failed to intercept sector link.");
     }
-  };
+  }, [user]);
 
   // 3. Listen for Updates & Commands (For Host)
   useEffect(() => {
@@ -181,7 +181,7 @@ export const useGame = (user: any) => {
     };
   }, [isHost, roomCode, gameState?.gameStatus === 'playing']);
 
-  const startGame = async () => {
+  const startGame = useCallback(async () => {
     try {
       if (!roomCode || !rtdb || !isHost) return;
       await update(ref(rtdb, `rooms/${roomCode}/state`), { gameStatus: 'playing' });
@@ -190,9 +190,9 @@ export const useGame = (user: any) => {
       console.error("Start game error:", e);
       setError("Failed to launch mission.");
     }
-  };
+  }, [roomCode, isHost]);
 
-  const placeTower = async (type: string, x: number, y: number) => {
+  const placeTower = useCallback(async (type: string, x: number, y: number) => {
     try {
       if (!roomCode || !rtdb || !gameState || !user) return;
       
@@ -214,9 +214,9 @@ export const useGame = (user: any) => {
     } catch (e) {
       console.error("Place tower error:", e);
     }
-  };
+  }, [roomCode, isHost, gameState, user]);
 
-  const upgradeTower = async (towerId: string) => {
+  const upgradeTower = useCallback(async (towerId: string) => {
     try {
       if (!roomCode || !rtdb || !gameState || !user) return;
       
@@ -236,7 +236,7 @@ export const useGame = (user: any) => {
     } catch (e) {
       console.error("Upgrade tower error:", e);
     }
-  };
+  }, [roomCode, isHost, gameState, user]);
 
   return {
     roomCode,
