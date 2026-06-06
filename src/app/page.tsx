@@ -157,7 +157,7 @@ export default function LandingPage() {
       <div className="flex flex-col landscape:flex-row lg:flex-row items-center justify-center min-h-screen landscape:h-screen landscape:max-h-screen lg:h-screen lg:max-h-screen w-full bg-emerald-900 text-white p-3 landscape:p-2 lg:p-4 select-none overflow-hidden bg-jungle gap-4 landscape:gap-4 lg:gap-6">
         
         {/* Left column: Canvas Board */}
-        <div className="flex flex-col items-center justify-center h-full landscape:h-full lg:h-full w-full max-w-[800px] landscape:w-auto relative">
+        <div className="flex flex-col items-center justify-center h-full landscape:h-full lg:h-full w-full max-w-[960px] landscape:w-auto relative">
           
           {/* Header (hidden in landscape mobile / desktop sidepanel to save space) */}
           <div className="mb-2.5 flex flex-row w-full justify-between items-center gap-2 px-2.5 landscape:hidden lg:hidden">
@@ -188,11 +188,12 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="relative w-full h-full landscape:w-auto landscape:h-full aspect-[4/3] group max-h-[70vh] landscape:max-h-[88vh] lg:max-h-[88vh]">
+          <div className="relative w-full h-full landscape:w-auto landscape:h-full group max-h-[70vh] landscape:max-h-[88vh] lg:max-h-[88vh]" style={{ aspectRatio: '16/10' }}>
             <GameCanvas 
               gameState={gameState} 
               selectedTowerId={selectedTowerId}
               onTileClick={handleTileClick} 
+              gold={gameState.players[user?.uid]?.gold ?? 0}
             />
 
             {/* WAVE NOTIFICATION OVERLAY */}
@@ -265,7 +266,7 @@ export default function LandingPage() {
         </div>
 
         {/* Right column: Wooden Sidebar (Shop & Status Dashboard) */}
-        <div className="w-full landscape:w-[220px] lg:w-[260px] flex flex-row landscape:flex-col lg:flex-col justify-between panel-wood border-4 border-amber-950 p-3 landscape:p-3 lg:p-4 rounded-3xl h-auto landscape:h-full landscape:max-h-[88vh] lg:h-full lg:max-h-[88vh] gap-3 landscape:gap-0">
+        <div className="w-full landscape:w-[220px] lg:w-[260px] flex flex-row landscape:flex-col lg:flex-col justify-between items-center panel-wood border-4 border-amber-950 p-2.5 landscape:p-3 lg:p-4 rounded-3xl h-auto landscape:h-full landscape:max-h-[88vh] lg:h-full lg:max-h-[88vh] gap-3 landscape:gap-0">
           
           {/* Header info (only visible in landscape / desktop sidebar) */}
           <div className="hidden landscape:block text-center mb-2 lg:mb-3 w-full">
@@ -318,19 +319,8 @@ export default function LandingPage() {
             ))}
           </div>
 
-          {/* Gold Reserves Dashboard (Mobile Portrait only) */}
-          <div className="bg-amber-950 border-2 border-amber-800 p-2.5 rounded-xl flex items-center justify-center gap-2 mb-0 landscape:hidden lg:hidden shadow-inner flex-1 landscape:flex-none">
-            <span className="text-sm lg:text-lg">🪙</span>
-            <div className="flex flex-col items-center justify-center font-cartoon-flat leading-none">
-              <span className="text-[8px] text-amber-500 uppercase tracking-widest font-bold hidden lg:block">GOLD RESERVES</span>
-              <span className="text-sm lg:text-lg font-cartoon text-yellow-400">
-                {gameState.players[user?.uid]?.gold || 0}
-              </span>
-            </div>
-          </div>
-
           {/* Sidebar shop items */}
-          <div className="flex flex-row landscape:flex-col lg:flex-col gap-2 flex-[2] landscape:flex-none justify-center landscape:justify-start">
+          <div className="flex flex-row landscape:flex-col lg:flex-col gap-1.5 md:gap-2 flex-grow landscape:flex-none justify-center landscape:justify-start">
             {[
               { id: 'basic', name: 'ARCHER TOWER', cost: 50, color: 'bg-green-700 border-green-800 text-green-100', icon: '🏹' },
               { id: 'sniper', name: 'WIZARD TOWER', cost: 120, color: 'bg-purple-700 border-purple-800 text-purple-100', icon: '🧙‍♂️' },
@@ -342,30 +332,30 @@ export default function LandingPage() {
                   setSelectedTowerType(t.id);
                   setSelectedTowerId(null);
                 }}
-                className={`flex flex-1 landscape:flex-none items-center gap-1.5 lg:gap-3 p-1.5 lg:p-2 rounded-xl border-2 transition-all btn-cartoon ${
+                className={`flex flex-1 landscape:flex-none items-center justify-center landscape:justify-start gap-1 md:gap-1.5 lg:gap-3 p-1 md:p-1.5 lg:p-2 rounded-xl border-2 transition-all btn-cartoon ${
                   selectedTowerType === t.id && !selectedTowerId
                     ? 'bg-amber-950 border-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.4)]' 
                     : 'bg-amber-900 border-amber-950'
                 }`}
               >
-                <div className={`w-7 h-7 lg:w-9 lg:h-9 rounded-lg ${t.color} border flex items-center justify-center text-sm lg:text-base shrink-0`}>
+                <div className={`w-6 h-6 md:w-7 md:h-7 lg:w-9 lg:h-9 rounded-lg ${t.color} border flex items-center justify-center text-xs md:text-sm lg:text-base shrink-0`}>
                   {t.icon}
                 </div>
                 <div className="text-left font-cartoon-flat leading-tight">
-                  <div className="text-[8px] lg:text-[10px] font-black text-amber-100 uppercase truncate max-w-[80px] lg:max-w-[120px]">{t.name.split(' ')[0]}</div>
-                  <div className="text-[8px] lg:text-[9px] text-yellow-400 font-bold">🪙 {t.cost}</div>
+                  <div className="text-[7px] md:text-[8px] lg:text-[10px] font-black text-amber-100 uppercase truncate max-w-[60px] md:max-w-[80px] lg:max-w-[120px]">{t.name.split(' ')[0]}</div>
+                  <div className="text-[7px] md:text-[8px] lg:text-[9px] text-yellow-400 font-bold">🪙 {t.cost}</div>
                 </div>
               </button>
             ))}
           </div>
 
           {/* Abort button */}
-          <div className="mt-0 landscape:mt-4 lg:mt-4 w-full flex-1 landscape:flex-none flex items-center">
+          <div className="flex-none w-20 md:w-24 landscape:mt-4 lg:mt-4 landscape:w-full flex items-center">
             <button 
               onClick={() => window.location.reload()} 
-              className="w-full btn-cartoon btn-red py-2 lg:py-2.5 rounded-xl text-[9px] lg:text-xs font-cartoon"
+              className="w-full btn-cartoon btn-red py-1.5 md:py-2.5 rounded-xl text-[8px] md:text-xs font-cartoon"
             >
-              ABORT RAID
+              ABORT
             </button>
           </div>
         </div>

@@ -2,17 +2,17 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StateManager = exports.GAME_PATH = void 0;
 exports.GAME_PATH = [
-    { x: 0, y: 300 },
-    { x: 200, y: 300 },
-    { x: 200, y: 100 },
-    { x: 600, y: 100 },
-    { x: 600, y: 500 },
-    { x: 740, y: 500 }
+    { x: 0, y: 320 },
+    { x: 240, y: 320 },
+    { x: 240, y: 80 },
+    { x: 720, y: 80 },
+    { x: 720, y: 480 },
+    { x: 960, y: 480 }
 ];
 class StateManager {
     constructor() {
         this.spawnTimer = 0;
-        this.waveDelay = 2; // FASTER TRANSITION: 2 seconds
+        this.waveDelay = 2;
         this.enemiesToSpawn = 0;
         this.state = {
             players: {},
@@ -55,9 +55,20 @@ class StateManager {
         this.startNextWave();
     }
     startNextWave() {
+        if (this.state.wave >= 10) {
+            this.state.gameStatus = 'victory';
+            return;
+        }
         this.state.wave++;
-        this.enemiesToSpawn = 5 + (this.state.wave * 3);
-        this.state.enemiesRemaining = this.enemiesToSpawn;
+        // FINAL BOSS WAVE
+        if (this.state.wave === 10) {
+            this.enemiesToSpawn = 1;
+            this.state.enemiesRemaining = 1;
+        }
+        else {
+            this.enemiesToSpawn = 5 + (this.state.wave * 3);
+            this.state.enemiesRemaining = this.enemiesToSpawn;
+        }
         this.spawnTimer = 0;
     }
     update(dt) {
@@ -76,7 +87,7 @@ class StateManager {
         // 1. Spawning
         if (this.enemiesToSpawn > 0) {
             this.spawnTimer += dt;
-            if (this.spawnTimer >= 0.6) { // FASTER SPAWNING: 0.6s
+            if (this.state.wave === 10 || this.spawnTimer >= 0.6) {
                 this.spawnEnemy();
                 this.enemiesToSpawn--;
                 this.spawnTimer = 0;
@@ -95,15 +106,14 @@ class StateManager {
             if (!targetNode)
                 return;
             const startNode = exports.GAME_PATH[enemy.pathIndex];
-            const dx = targetNode.x - startNode.x;
-            const dy = targetNode.y - startNode.y;
+            const dx = targetNode.x - startNode.x, dy = targetNode.y - startNode.y;
             const distance = Math.sqrt(dx * dx + dy * dy);
             enemy.progress += (enemy.speed * dt) / distance;
             if (enemy.progress >= 1) {
                 enemy.pathIndex++;
                 enemy.progress = 0;
                 if (enemy.pathIndex >= exports.GAME_PATH.length - 1) {
-                    this.state.nexusHealth -= 10;
+                    this.state.nexusHealth -= (enemy.type === 'tank' && this.state.wave === 10) ? 100 : 10;
                     enemy.health = 0;
                     this.state.screenShake = 0.6;
                     this.addFloatingText("BREACHED", enemy.x, enemy.y, "#ef4444");
@@ -127,8 +137,7 @@ class StateManager {
         this.state.towers.forEach(tower => {
             if (now - tower.lastShot < (1000 / tower.fireRate))
                 return;
-            let closestEnemy = null;
-            let minDistance = tower.range;
+            let closestEnemy = null, minDistance = tower.range;
             this.state.enemies.forEach(enemy => {
                 const dist = Math.sqrt(Math.pow(enemy.x - tower.x, 2) + Math.pow(enemy.y - tower.y, 2));
                 if (dist < minDistance) {
@@ -152,10 +161,7 @@ class StateManager {
         });
     }
     addFloatingText(text, x, y, color) {
-        this.state.floatingTexts.push({
-            id: Math.random().toString(36).substr(2, 5),
-            text, x, y, color, life: 1.0
-        });
+        this.state.floatingTexts.push({ id: Math.random().toString(36).substr(2, 5), text, x, y, color, life: 1.0 });
     }
     placeTower(playerId, type, x, y) {
         const player = this.state.players[playerId];
@@ -174,22 +180,13 @@ class StateManager {
         }
         if (!player || player.gold < cost)
             return;
-        const gridX = Math.floor(x / 40) * 40;
-        const gridY = Math.floor(y / 40) * 40;
+        const gridX = Math.floor(x / 40) * 40, gridY = Math.floor(y / 40) * 40;
+        // STRICT BLOCKING ON ROAD
         if (this.isPointOnPath(gridX, gridY))
             return;
         if (this.state.towers.some(t => t.x === gridX && t.y === gridY))
             return;
-        const newTower = {
-            id: Math.random().toString(36).substring(2, 9),
-            ownerId: playerId,
-            type: type,
-            level: 1,
-            x: gridX, y: gridY,
-            range, damage, fireRate,
-            lastShot: 0,
-            upgradeCost: Math.floor(cost * 1.5)
-        };
+        const newTower = { id: Math.random().toString(36).substring(2, 9), ownerId: playerId, type: type, level: 1, x: gridX, y: gridY, range, damage, fireRate, lastShot: 0, upgradeCost: Math.floor(cost * 1.5) };
         this.state.towers.push(newTower);
         player.gold -= cost;
         this.addFloatingText(`-${cost}`, gridX, gridY, "#ef4444");
@@ -210,18 +207,16 @@ class StateManager {
         this.addFloatingText(`-${oldCost}`, tower.x, tower.y + 20, "#ef4444");
     }
     isPointOnPath(gridX, gridY) {
-        const tx = gridX + 20, ty = gridY + 20;
+        // Exact tile matching for grid-aligned path
         for (let i = 0; i < exports.GAME_PATH.length - 1; i++) {
-            const s = exports.GAME_PATH[i], e = exports.GAME_PATH[i + 1];
-            if (s.y === e.y) {
-                const minX = Math.min(s.x, e.x), maxX = Math.max(s.x, e.x);
-                if (Math.abs(ty - (s.y + 20)) < 20 && tx >= minX && tx <= maxX + 40)
-                    return true;
-            }
-            if (s.x === e.x) {
-                const minY = Math.min(s.y, e.y), maxY = Math.max(s.y, e.y);
-                if (Math.abs(tx - (s.x + 20)) < 20 && ty >= minY && ty <= maxY + 40)
-                    return true;
+            const s = exports.GAME_PATH[i];
+            const e = exports.GAME_PATH[i + 1];
+            const minX = Math.min(s.x, e.x);
+            const maxX = Math.max(s.x, e.x);
+            const minY = Math.min(s.y, e.y);
+            const maxY = Math.max(s.y, e.y);
+            if (gridX >= minX && gridX <= maxX && gridY >= minY && gridY <= maxY) {
+                return true;
             }
         }
         return false;
@@ -229,15 +224,23 @@ class StateManager {
     spawnEnemy() {
         const r = Math.random();
         let type = 'basic', h = 40 + (this.state.wave * 12), s = 60 + (this.state.wave * 2);
-        if (r > 0.85) {
+        if (this.state.wave === 10) {
             type = 'tank';
-            h *= 3.5;
-            s *= 0.55;
+            h = 3000;
+            s = 25;
+            this.addFloatingText("FINAL BOSS INBOUND", 100, 320, "#facc15");
         }
-        else if (r > 0.7) {
-            type = 'fast';
-            h *= 0.4;
-            s *= 2.0;
+        else {
+            if (r > 0.85) {
+                type = 'tank';
+                h *= 3.5;
+                s *= 0.55;
+            }
+            else if (r > 0.7) {
+                type = 'fast';
+                h *= 0.4;
+                s *= 2.0;
+            }
         }
         this.state.enemies.push({ id: Math.random().toString(36).substr(2, 7), type, health: h, maxHealth: h, x: exports.GAME_PATH[0].x, y: exports.GAME_PATH[0].y, speed: s, pathIndex: 0, progress: 0 });
     }

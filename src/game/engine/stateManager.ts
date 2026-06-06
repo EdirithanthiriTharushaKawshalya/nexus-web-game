@@ -3,11 +3,11 @@ import { GameState, Player, Enemy, Tower } from "@/types/game";
 
 export const GAME_PATH = [
   { x: 0, y: 320 },
-  { x: 200, y: 320 },
-  { x: 200, y: 80 },
-  { x: 600, y: 80 },
-  { x: 600, y: 480 },
-  { x: 800, y: 480 }
+  { x: 240, y: 320 },
+  { x: 240, y: 80 },
+  { x: 720, y: 80 },
+  { x: 720, y: 480 },
+  { x: 960, y: 480 }
 ];
 
 export class StateManager {

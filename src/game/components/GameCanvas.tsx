@@ -8,9 +8,10 @@ interface GameCanvasProps {
   gameState: GameState;
   selectedTowerId: string | null;
   onTileClick: (x: number, y: number) => void;
+  gold: number;
 }
 
-export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: GameCanvasProps) {
+export default function GameCanvas({ gameState, selectedTowerId, onTileClick, gold }: GameCanvasProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -30,13 +31,13 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
   // Pre-render static grass, road, stones, and trees onto an offscreen canvas once
   const preRenderBackground = () => {
     const bgCanvas = document.createElement("canvas");
-    bgCanvas.width = 800;
+    bgCanvas.width = 960;
     bgCanvas.height = 600;
     const bgCtx = bgCanvas.getContext("2d");
     if (!bgCtx) return null;
 
     // 1. Lush Grassy Jungle Background
-    for (let tx = 0; tx < 20; tx++) {
+    for (let tx = 0; tx < 24; tx++) {
       for (let ty = 0; ty < 15; ty++) {
         const x = tx * 40;
         const y = ty * 40;
@@ -155,8 +156,10 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
     };
 
     const trees = [
-      { x: 50, y: 50 }, { x: 120, y: 40 }, { x: 340, y: 50 }, { x: 420, y: 45 }, { x: 480, y: 50 },
-      { x: 50, y: 540 }, { x: 110, y: 535 }, { x: 270, y: 550 }, { x: 330, y: 540 }, { x: 480, y: 535 }
+      { x: 60, y: 50 }, { x: 144, y: 40 }, { x: 408, y: 50 }, { x: 504, y: 45 }, { x: 576, y: 50 },
+      { x: 680, y: 45 }, { x: 800, y: 50 }, { x: 890, y: 40 },
+      { x: 60, y: 540 }, { x: 132, y: 535 }, { x: 324, y: 550 }, { x: 396, y: 540 }, { x: 576, y: 535 },
+      { x: 680, y: 540 }, { x: 800, y: 550 }, { x: 890, y: 535 }
     ];
     trees.forEach(t => drawTree(t.x, t.y));
 
@@ -833,8 +836,8 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     
-    // Scale coords from display container down to internal 800x600 units
-    const scaleX = 800 / rect.width;
+    // Scale coords from display container down to internal 960x600 units
+    const scaleX = 960 / rect.width;
     const scaleY = 600 / rect.height;
     
     const x = Math.floor(((e.clientX - rect.left) * scaleX) / 40) * 40;
@@ -844,14 +847,19 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
   };
 
   return (
-    <div ref={containerRef} className="relative w-full landscape:w-auto landscape:h-full max-w-[800px] aspect-[4/3] border-4 md:border-[6px] border-amber-950 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl bg-emerald-950">
+    <div ref={containerRef} className="relative w-full landscape:w-auto landscape:h-full max-w-[960px] border-4 md:border-[6px] border-amber-950 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl bg-emerald-950" style={{ aspectRatio: '16/10' }}>
       <canvas
         ref={canvasRef}
-        width={800}
+        width={960}
         height={600}
         onClick={handleClick}
         className="w-full h-full cursor-crosshair"
       />
+      {/* COIN AMOUNT OVERLAY */}
+      <div className="absolute top-2 right-2 md:top-3 md:right-3 bg-amber-950/95 border-2 border-amber-800 px-2.5 py-0.5 rounded-lg md:rounded-xl flex items-center gap-1 shadow-md z-30 font-cartoon text-[10px] md:text-xs text-yellow-400 select-none">
+        <span>🪙</span>
+        <span>{gold}</span>
+      </div>
     </div>
   );
 }
