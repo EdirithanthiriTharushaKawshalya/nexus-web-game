@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { rtdb } from "@/lib/firebase/firebaseConfig";
-import { ref, onValue, set, update, onDisconnect, remove, get } from "firebase/database";
+import { ref, onValue, set, update, onDisconnect, remove, get, push, onChildAdded } from "firebase/database";
 import { GameState, Player, Tower } from "@/types/game";
 import { StateManager } from "@/game/engine/stateManager";
 
@@ -85,12 +85,12 @@ export const useGame = (user: any) => {
     setIsHost(roomData.hostId === user.uid);
   };
 
-  // 3. Listen for Updates
+  // 3. Listen for Updates & Commands (For Host)
   useEffect(() => {
     if (!roomCode || !rtdb) return;
 
     const stateRef = ref(rtdb, `rooms/${roomCode}/state`);
-    const unsubscribe = onValue(stateRef, (snapshot) => {
+    const unsubscribeState = onValue(stateRef, (snapshot) => {
       try {
         const data = snapshot.val();
         if (data) {
@@ -101,15 +101,37 @@ export const useGame = (user: any) => {
             towers: data.towers || []
           };
           setGameState(sanitizedState);
-          // Sync local state manager so the Host has correct player data
-          stateManagerRef.current.syncState(sanitizedState);
+          // Lead Commander's engine must stay in sync with player list/gold
+          if (isHost) {
+             stateManagerRef.current.syncState(sanitizedState);
+          }
         }
       } catch (e) {
         console.error("Sync error:", e);
       }
     });
 
-    return () => unsubscribe();
+    // Lead Commander specifically listens for player actions
+    let unsubscribeActions = () => {};
+    if (isHost) {
+      const actionsRef = ref(rtdb, `rooms/${roomCode}/actions`);
+      unsubscribeActions = onChildAdded(actionsRef, (snapshot) => {
+        const action = snapshot.val();
+        if (action) {
+          const sm = stateManagerRef.current;
+          if (action.type === 'placeTower') {
+            sm.placeTower(action.playerId, action.towerType, action.x, action.y);
+          }
+          // Remove the action once processed
+          remove(ref(rtdb!, `rooms/${roomCode}/actions/${snapshot.key}`));
+        }
+      });
+    }
+
+    return () => {
+      unsubscribeState();
+      unsubscribeActions();
+    };
   }, [roomCode, isHost]);
 
   // 4. Authoritative Host Loop
@@ -142,7 +164,7 @@ export const useGame = (user: any) => {
       await update(ref(rtdb, `rooms/${roomCode}/state`), { gameStatus: 'playing' });
     } catch (e) {
       console.error("Start game error:", e);
-      setError("Failed to launch mission. Check Firebase rules.");
+      setError("Failed to launch mission.");
     }
   };
 
@@ -150,11 +172,23 @@ export const useGame = (user: any) => {
     try {
       if (!roomCode || !rtdb || !gameState) return;
       
-      const sm = stateManagerRef.current;
-      sm.placeTower(user.uid, type, x, y);
-      const newState = sm.getState();
-      
-      await update(ref(rtdb, `rooms/${roomCode}/state`), newState);
+      if (isHost) {
+        // Host can update directly
+        const sm = stateManagerRef.current;
+        sm.placeTower(user.uid, type, x, y);
+        await update(ref(rtdb, `rooms/${roomCode}/state`), sm.getState());
+      } else {
+        // Guests send a request to the Host's queue
+        const actionsRef = ref(rtdb, `rooms/${roomCode}/actions`);
+        await push(actionsRef, {
+          type: 'placeTower',
+          playerId: user.uid,
+          towerType: type,
+          x,
+          y,
+          timestamp: Date.now()
+        });
+      }
     } catch (e) {
       console.error("Place tower error:", e);
     }
