@@ -47,7 +47,7 @@ export interface GameState {
   enemies: Enemy[];
   towers: Tower[];
   floatingTexts: FloatingText[];
-  gameStatus: 'lobby' | 'playing' | 'gameOver';
+  gameStatus: 'lobby' | 'playing' | 'gameOver' | 'victory';
   wave: number;
   nexusHealth: number;
   maxNexusHealth: number;

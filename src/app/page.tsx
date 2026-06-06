@@ -78,7 +78,46 @@ export default function LandingPage() {
     return <AuthPortal />;
   }
 
-  // 2. GAME OVER VIEW
+  // 2. VICTORY VIEW
+  if (gameState && gameState.gameStatus === 'victory') {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-950 text-white p-4 relative bg-jungle">
+        <div className="text-center w-full max-w-lg animate-in fade-in zoom-in duration-700 panel-wood p-10 border-8 border-yellow-400 shadow-[0_0_80px_rgba(251,191,36,0.6)] relative overflow-hidden">
+          <div className="absolute -top-12 -left-12 w-32 h-32 bg-yellow-400/20 rounded-full blur-3xl animate-pulse" />
+          
+          <h1 className="text-6xl md:text-8xl font-black text-yellow-400 tracking-tighter mb-4 leading-none font-cartoon rotate-[-2deg]">
+            VICTORY!
+          </h1>
+          <p className="text-xl text-yellow-100 mb-10 uppercase tracking-[0.3em] font-black italic">Sector Secured. Nexus Defended.</p>
+          
+          <div className="space-y-3 mb-10">
+            <h2 className="text-center font-cartoon-sm text-emerald-300 text-sm mb-4 tracking-widest">🏆 LEGENDARY COMMANDERS 🏆</h2>
+            {Object.values(gameState.players).sort((a,b) => b.score - a.score).map((p, i) => (
+              <div key={p.id} className="bg-amber-950 border-3 border-yellow-600/50 p-5 rounded-3xl flex justify-between items-center shadow-lg">
+                <div className="flex items-center gap-4">
+                  <span className="text-yellow-500 font-cartoon text-xl">#0{i+1}</span>
+                  <span className="font-black text-amber-100 text-lg font-cartoon-flat">{p.name}</span>
+                </div>
+                <div className="text-right">
+                  <span className="block text-[10px] text-amber-500 font-black tracking-widest uppercase">Final Score</span>
+                  <span className="text-yellow-400 font-cartoon text-2xl">{p.score}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <button 
+            onClick={() => window.location.reload()}
+            className="w-full btn-cartoon btn-gold py-6 rounded-[2.5rem] text-2xl font-cartoon"
+          >
+            RETURN TO COUNCIL
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. GAME OVER VIEW
   if (gameState && gameState.gameStatus === 'gameOver') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-950/90 text-white p-4 relative bg-jungle">
