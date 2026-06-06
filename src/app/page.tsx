@@ -266,29 +266,29 @@ export default function LandingPage() {
         </div>
 
         {/* Right column: Wooden Sidebar (Shop & Status Dashboard) */}
-        <div className="w-full landscape:w-[220px] lg:w-[260px] flex flex-row landscape:flex-col lg:flex-col justify-between items-center panel-wood border-4 border-amber-950 p-2.5 landscape:p-3 lg:p-4 rounded-3xl h-auto landscape:h-full landscape:max-h-[88vh] lg:h-full lg:max-h-[88vh] gap-3 landscape:gap-0">
+        <div className="w-full landscape:w-[220px] lg:w-[260px] flex flex-row landscape:flex-col lg:flex-col justify-between items-center panel-wood border-4 border-amber-950 p-2.5 landscape:p-3 lg:p-4 rounded-3xl h-auto landscape:h-full landscape:max-h-[88vh] lg:h-full lg:max-h-[88vh] gap-3 landscape:gap-1.5 lg:gap-4">
           
-          {/* Header info (only visible in landscape / desktop sidebar) */}
-          <div className="hidden landscape:block text-center mb-2 lg:mb-3 w-full">
+          {/* Header info (only visible in desktop sidebar) */}
+          <div className="hidden lg:block text-center mb-2 lg:mb-3 w-full">
             <h1 className="text-md lg:text-2xl font-cartoon leading-none text-yellow-400 uppercase italic text-shadow-none">VILLAGE DEFENSE</h1>
             <div className="text-[9px] font-black text-amber-300 uppercase tracking-widest mt-1 font-cartoon-flat">CODE: {roomCode}</div>
           </div>
 
           {/* Wave Counter & Elixir Core (only on landscape / desktop sidebar) */}
-          <div className="hidden landscape:flex lg:flex flex-col gap-2 mb-3 w-full">
+          <div className="hidden landscape:flex lg:flex flex-row lg:flex-col gap-1.5 lg:gap-2 mb-2 lg:mb-3 w-full">
             {/* Wave Counter */}
-            <div className="bg-amber-950 border-2 border-amber-800 p-2 rounded-xl flex items-center justify-between font-cartoon-flat leading-none shadow-inner">
-              <span className="text-[9px] text-amber-500 uppercase tracking-widest font-bold">Raid Wave</span>
-              <span className="text-sm font-cartoon text-yellow-400">⚔️ {gameState.wave}</span>
+            <div className="bg-amber-950 border-2 border-amber-800 p-1.5 lg:p-2 rounded-xl flex items-center justify-center lg:justify-between gap-1 font-cartoon-flat leading-none shadow-inner flex-1 w-full">
+              <span className="text-[7px] lg:text-[9px] text-amber-500 uppercase tracking-widest font-bold">WAVE</span>
+              <span className="text-xs lg:text-sm font-cartoon text-yellow-400">⚔️ {gameState.wave}</span>
             </div>
 
             {/* Elixir Core Integrity Bar */}
-            <div className="bg-amber-950 border-2 border-amber-800 p-2.5 rounded-xl flex flex-col gap-1.5 font-cartoon-flat shadow-inner">
-              <div className="flex justify-between items-center text-[9px] font-bold text-amber-100">
-                <span className="text-[8px] text-pink-400 uppercase tracking-widest">ELIXIR CORE</span>
+            <div className="bg-amber-950 border-2 border-amber-800 p-1.5 lg:p-2.5 rounded-xl flex flex-col gap-1 lg:gap-1.5 font-cartoon-flat shadow-inner flex-[1.4] lg:flex-none w-full">
+              <div className="flex justify-between items-center text-[8px] lg:text-[9px] font-bold text-amber-100">
+                <span className="text-[7px] lg:text-[8px] text-pink-400 uppercase tracking-widest">CORE</span>
                 <span>{gameState.nexusHealth}%</span>
               </div>
-              <div className="w-full h-3 bg-zinc-950 border border-amber-900 rounded-full overflow-hidden p-[2px]">
+              <div className="w-full h-2 lg:h-3 bg-zinc-950 border border-amber-900 rounded-full overflow-hidden p-[1px] lg:p-[2px]">
                 <div 
                   className="h-full bg-gradient-to-r from-pink-500 via-pink-400 to-fuchsia-500 rounded-full transition-all duration-300"
                   style={{ width: `${Math.max(0, (gameState.nexusHealth / gameState.maxNexusHealth) * 100)}%` }}
@@ -297,8 +297,8 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Clan Members list (only on landscape / desktop sidebar) */}
-          <div className="hidden landscape:flex lg:flex flex-col gap-1.5 w-full max-h-[140px] overflow-y-auto mb-3 border-b-2 border-amber-900/40 pb-3 scrollbar-thin">
+          {/* Clan Members list (only on desktop sidebar) */}
+          <div className="hidden lg:flex flex-col gap-1.5 w-full max-h-[140px] overflow-y-auto mb-3 border-b-2 border-amber-900/40 pb-3 scrollbar-thin">
             <div className="text-[8px] font-black text-amber-300 uppercase tracking-widest mb-1 text-center font-cartoon-flat">CLAN MEMBERS</div>
             {gameState.players && Object.values(gameState.players).map(player => (
               <div 
@@ -320,7 +320,7 @@ export default function LandingPage() {
           </div>
 
           {/* Sidebar shop items */}
-          <div className="flex flex-row landscape:flex-col lg:flex-col gap-1.5 md:gap-2 flex-grow landscape:flex-none justify-center landscape:justify-start">
+          <div className="flex flex-row landscape:flex-col lg:flex-col gap-1.5 md:gap-2 flex-grow landscape:flex-none w-full justify-center landscape:justify-start">
             {[
               { id: 'basic', name: 'ARCHER TOWER', cost: 50, color: 'bg-green-700 border-green-800 text-green-100', icon: '🏹' },
               { id: 'sniper', name: 'WIZARD TOWER', cost: 120, color: 'bg-purple-700 border-purple-800 text-purple-100', icon: '🧙‍♂️' },
@@ -332,7 +332,7 @@ export default function LandingPage() {
                   setSelectedTowerType(t.id);
                   setSelectedTowerId(null);
                 }}
-                className={`flex flex-1 landscape:flex-none items-center justify-center landscape:justify-start gap-1 md:gap-1.5 lg:gap-3 p-1 md:p-1.5 lg:p-2 rounded-xl border-2 transition-all btn-cartoon ${
+                className={`flex flex-1 landscape:flex-none landscape:w-full items-center justify-center landscape:justify-start gap-1 md:gap-1.5 lg:gap-3 p-1 md:p-1.5 lg:p-2 rounded-xl border-2 transition-all btn-cartoon ${
                   selectedTowerType === t.id && !selectedTowerId
                     ? 'bg-amber-950 border-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.4)]' 
                     : 'bg-amber-900 border-amber-950'
@@ -350,7 +350,7 @@ export default function LandingPage() {
           </div>
 
           {/* Abort button */}
-          <div className="flex-none w-20 md:w-24 landscape:mt-4 lg:mt-4 landscape:w-full flex items-center">
+          <div className="flex-none w-20 md:w-24 landscape:mt-2 lg:mt-4 landscape:w-full flex items-center">
             <button 
               onClick={() => window.location.reload()} 
               className="w-full btn-cartoon btn-red py-1.5 md:py-2.5 rounded-xl text-[8px] md:text-xs font-cartoon"
