@@ -28,6 +28,18 @@ class StateManager {
     getState() {
         return this.state;
     }
+    syncState(newState) {
+        // Only sync things that aren't managed by the local engine loop to avoid flickering
+        // For the host, we mainly need the player list and their gold
+        this.state.players = newState.players || {};
+        this.state.gameStatus = newState.gameStatus;
+        if (newState.gameStatus === 'lobby') {
+            this.state.enemies = [];
+            this.state.towers = [];
+            this.state.nexusHealth = 100;
+            this.state.wave = 0;
+        }
+    }
     addPlayer(id, name) {
         this.state.players[id] = {
             id,

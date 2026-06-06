@@ -36,7 +36,7 @@ export class StateManager {
   public syncState(newState: GameState) {
     // Only sync things that aren't managed by the local engine loop to avoid flickering
     // For the host, we mainly need the player list and their gold
-    this.state.players = newState.players;
+    this.state.players = newState.players || {};
     this.state.gameStatus = newState.gameStatus;
     if (newState.gameStatus === 'lobby') {
       this.state.enemies = [];

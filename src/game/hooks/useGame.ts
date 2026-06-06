@@ -63,8 +63,8 @@ export const useGame = (user: any) => {
     }
 
     const roomData = snapshot.val();
-    if (Object.keys(roomData.state.players).length >= 8) {
-      setError("Sector full");
+    if (!roomData || !roomData.state || Object.keys(roomData.state.players || {}).length >= 8) {
+      setError("Sector full or invalid");
       return;
     }
 
@@ -94,9 +94,15 @@ export const useGame = (user: any) => {
       try {
         const data = snapshot.val();
         if (data) {
-          setGameState(data);
+          const sanitizedState: GameState = {
+            ...data,
+            players: data.players || {},
+            enemies: data.enemies || [],
+            towers: data.towers || []
+          };
+          setGameState(sanitizedState);
           // Sync local state manager so the Host has correct player data
-          stateManagerRef.current.syncState(data);
+          stateManagerRef.current.syncState(sanitizedState);
         }
       } catch (e) {
         console.error("Sync error:", e);
@@ -163,6 +169,6 @@ export const useGame = (user: any) => {
     joinRoom,
     startGame,
     placeTower,
-    players: gameState ? Object.keys(gameState.players) : []
+    players: gameState ? Object.keys(gameState.players || {}) : []
   };
 };
