@@ -28,17 +28,30 @@ export interface Tower {
   y: number;
   range: number;
   damage: number;
-  fireRate: number; // Attacks per second
-  lastShot: number; // Timestamp of last shot
+  fireRate: number;
+  lastShot: number;
+  upgradeCost: number;
+}
+
+export interface FloatingText {
+  id: string;
+  text: string;
+  x: number;
+  y: number;
+  color: string;
+  life: number; // 0 to 1
 }
 
 export interface GameState {
   players: Record<string, Player>;
   enemies: Enemy[];
   towers: Tower[];
+  floatingTexts: FloatingText[];
   gameStatus: 'lobby' | 'playing' | 'gameOver';
   wave: number;
   nexusHealth: number;
   maxNexusHealth: number;
   enemiesRemaining: number;
+  screenShake: number; // Intensity 0 to 1
 }
+

@@ -17,72 +17,84 @@ export const useGame = (user: any) => {
 
   // 1. Create Room (Become Host)
   const createRoom = async () => {
-    if (!rtdb) return;
-    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const roomRef = ref(rtdb, `rooms/${code}`);
-    
-    const initialPlayer: Player = {
-      id: user.uid,
-      name: user.displayName || "Commander",
-      lives: 20,
-      gold: 150,
-      score: 0
-    };
+    if (!rtdb || !user) return;
+    try {
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const roomRef = ref(rtdb, `rooms/${code}`);
+      
+      const initialPlayer: Player = {
+        id: user.uid,
+        name: user.displayName || "Commander",
+        lives: 20,
+        gold: 150,
+        score: 0
+      };
 
-    const initialState: GameState = {
-      players: { [user.uid]: initialPlayer },
-      enemies: [],
-      towers: [],
-      gameStatus: 'lobby',
-      wave: 0,
-      nexusHealth: 100,
-      maxNexusHealth: 100,
-      enemiesRemaining: 0
-    };
+      const initialState: GameState = {
+        players: { [user.uid]: initialPlayer },
+        enemies: [],
+        towers: [],
+        floatingTexts: [],
+        gameStatus: 'lobby',
+        wave: 0,
+        nexusHealth: 100,
+        maxNexusHealth: 100,
+        enemiesRemaining: 0,
+        screenShake: 0
+      };
 
-    await set(roomRef, {
-      state: initialState,
-      hostId: user.uid,
-      createdAt: Date.now()
-    });
+      await set(roomRef, {
+        state: initialState,
+        hostId: user.uid,
+        createdAt: Date.now()
+      });
 
-    onDisconnect(roomRef).remove();
-    setRoomCode(code);
-    setIsHost(true);
+      onDisconnect(roomRef).remove();
+      setRoomCode(code);
+      setIsHost(true);
+    } catch (e) {
+      console.error("Create room error:", e);
+      setError("Failed to initialize sector.");
+    }
   };
 
   // 2. Join Room
   const joinRoom = async (code: string) => {
-    if (!rtdb) return;
-    const roomRef = ref(rtdb, `rooms/${code}`);
-    const snapshot = await get(roomRef);
-    
-    if (!snapshot.exists()) {
-      setError("Sector not found");
-      return;
+    if (!rtdb || !user) return;
+    try {
+      const roomRef = ref(rtdb, `rooms/${code}`);
+      const snapshot = await get(roomRef);
+      
+      if (!snapshot.exists()) {
+        setError("Sector not found");
+        return;
+      }
+
+      const roomData = snapshot.val();
+      if (!roomData || !roomData.state || Object.keys(roomData.state.players || {}).length >= 8) {
+        setError("Sector full or invalid");
+        return;
+      }
+
+      const newPlayer: Player = {
+        id: user.uid,
+        name: user.displayName || "Commander",
+        lives: 20,
+        gold: 150,
+        score: 0
+      };
+
+      await update(ref(rtdb, `rooms/${code}/state/players`), {
+        [user.uid]: newPlayer
+      });
+
+      onDisconnect(ref(rtdb, `rooms/${code}/state/players/${user.uid}`)).remove();
+      setRoomCode(code);
+      setIsHost(roomData.hostId === user.uid);
+    } catch (e) {
+      console.error("Join room error:", e);
+      setError("Failed to intercept sector link.");
     }
-
-    const roomData = snapshot.val();
-    if (!roomData || !roomData.state || Object.keys(roomData.state.players || {}).length >= 8) {
-      setError("Sector full or invalid");
-      return;
-    }
-
-    const newPlayer: Player = {
-      id: user.uid,
-      name: user.displayName || "Commander",
-      lives: 20,
-      gold: 150,
-      score: 0
-    };
-
-    await update(ref(rtdb, `rooms/${code}/state/players`), {
-      [user.uid]: newPlayer
-    });
-
-    onDisconnect(ref(rtdb, `rooms/${code}/state/players/${user.uid}`)).remove();
-    setRoomCode(code);
-    setIsHost(roomData.hostId === user.uid);
   };
 
   // 3. Listen for Updates & Commands (For Host)
@@ -98,7 +110,8 @@ export const useGame = (user: any) => {
             ...data,
             players: data.players || {},
             enemies: data.enemies || [],
-            towers: data.towers || []
+            towers: data.towers || [],
+            floatingTexts: data.floatingTexts || []
           };
           setGameState(sanitizedState);
           // Lead Commander's engine must stay in sync with player list/gold
@@ -121,6 +134,8 @@ export const useGame = (user: any) => {
           const sm = stateManagerRef.current;
           if (action.type === 'placeTower') {
             sm.placeTower(action.playerId, action.towerType, action.x, action.y);
+          } else if (action.type === 'upgradeTower') {
+            sm.upgradeTower(action.playerId, action.towerId);
           }
           // Remove the action once processed
           remove(ref(rtdb!, `rooms/${roomCode}/actions/${snapshot.key}`));
@@ -162,6 +177,7 @@ export const useGame = (user: any) => {
     try {
       if (!roomCode || !rtdb || !isHost) return;
       await update(ref(rtdb, `rooms/${roomCode}/state`), { gameStatus: 'playing' });
+      stateManagerRef.current.startGame();
     } catch (e) {
       console.error("Start game error:", e);
       setError("Failed to launch mission.");
@@ -170,15 +186,13 @@ export const useGame = (user: any) => {
 
   const placeTower = async (type: string, x: number, y: number) => {
     try {
-      if (!roomCode || !rtdb || !gameState) return;
+      if (!roomCode || !rtdb || !gameState || !user) return;
       
       if (isHost) {
-        // Host can update directly
         const sm = stateManagerRef.current;
         sm.placeTower(user.uid, type, x, y);
         await update(ref(rtdb, `rooms/${roomCode}/state`), sm.getState());
       } else {
-        // Guests send a request to the Host's queue
         const actionsRef = ref(rtdb, `rooms/${roomCode}/actions`);
         await push(actionsRef, {
           type: 'placeTower',
@@ -194,6 +208,28 @@ export const useGame = (user: any) => {
     }
   };
 
+  const upgradeTower = async (towerId: string) => {
+    try {
+      if (!roomCode || !rtdb || !gameState || !user) return;
+      
+      if (isHost) {
+        const sm = stateManagerRef.current;
+        sm.upgradeTower(user.uid, towerId);
+        await update(ref(rtdb, `rooms/${roomCode}/state`), sm.getState());
+      } else {
+        const actionsRef = ref(rtdb, `rooms/${roomCode}/actions`);
+        await push(actionsRef, {
+          type: 'upgradeTower',
+          playerId: user.uid,
+          towerId,
+          timestamp: Date.now()
+        });
+      }
+    } catch (e) {
+      console.error("Upgrade tower error:", e);
+    }
+  };
+
   return {
     roomCode,
     gameState,
@@ -203,6 +239,7 @@ export const useGame = (user: any) => {
     joinRoom,
     startGame,
     placeTower,
+    upgradeTower,
     players: gameState ? Object.keys(gameState.players || {}) : []
   };
 };

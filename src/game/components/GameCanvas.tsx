@@ -20,11 +20,33 @@ export default function GameCanvas({ gameState, onTileClick }: GameCanvasProps) 
     if (!ctx) return;
 
     const render = () => {
-      // ... (render logic remains same, but we use internal 800x600 units)
+      // 1. Clear with Screen Shake
+      ctx.save();
+      if (gameState.screenShake > 0) {
+        const sx = (Math.random() - 0.5) * gameState.screenShake * 20;
+        const sy = (Math.random() - 0.5) * gameState.screenShake * 20;
+        ctx.translate(sx, sy);
+      }
+
       ctx.fillStyle = "#020617";
-      ctx.fillRect(0, 0, 800, 600);
+      ctx.fillRect(-50, -50, 900, 700);
       
-      // Path and Grid
+      // 2. Pro Background: Scanlines & Grid
+      ctx.strokeStyle = "rgba(30, 41, 59, 0.4)";
+      ctx.lineWidth = 1;
+      for (let x = 0; x < 800; x += 40) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
+      }
+      for (let y = 0; y < 600; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
+      }
+
+      // Animated scanline
+      const scanY = (Date.now() / 20) % 600;
+      ctx.fillStyle = "rgba(59, 130, 246, 0.03)";
+      ctx.fillRect(0, scanY, 800, 2);
+
+      // Path
       ctx.strokeStyle = "#1e293b";
       ctx.lineWidth = 40;
       ctx.lineCap = "round";
@@ -35,16 +57,6 @@ export default function GameCanvas({ gameState, onTileClick }: GameCanvasProps) 
         ctx.lineTo(GAME_PATH[i].x + 20, GAME_PATH[i].y + 20);
       }
       ctx.stroke();
-
-      // Grid
-      ctx.strokeStyle = "rgba(30, 41, 59, 0.3)";
-      ctx.lineWidth = 1;
-      for (let x = 0; x < 800; x += 40) {
-        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 600); ctx.stroke();
-      }
-      for (let y = 0; y < 600; y += 40) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(800, y); ctx.stroke();
-      }
 
       // Draw Nexus
       const nexus = GAME_PATH[GAME_PATH.length - 1];
@@ -65,17 +77,20 @@ export default function GameCanvas({ gameState, onTileClick }: GameCanvasProps) 
       gameState.towers.forEach((tower) => {
         ctx.fillStyle = tower.type === 'sniper' ? '#4c1d95' : tower.type === 'pulse' ? '#713f12' : '#1e40af';
         ctx.fillRect(tower.x + 5, tower.y + 5, 30, 30);
+        
         ctx.fillStyle = tower.type === 'sniper' ? '#a78bfa' : tower.type === 'pulse' ? '#facc15' : '#3b82f6';
         ctx.beginPath();
         ctx.arc(tower.x + 20, tower.y + 20, tower.type === 'sniper' ? 8 : 10, 0, Math.PI * 2);
         ctx.fill();
-        if (tower.type === 'sniper') {
-          ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 4;
-          ctx.beginPath(); ctx.moveTo(tower.x + 20, tower.y + 20); ctx.lineTo(tower.x + 20, tower.y + 5); ctx.stroke();
-        }
+
+        // Level Badge
+        ctx.fillStyle = "#fff";
+        ctx.font = "10px Monospace";
+        ctx.fillText(`${tower.level}`, tower.x + 8, tower.y + 15);
+
         if (Date.now() - tower.lastShot < 100) {
           ctx.strokeStyle = tower.type === 'sniper' ? '#c084fc' : tower.type === 'pulse' ? '#fde047' : '#60a5fa';
-          ctx.lineWidth = tower.type === 'sniper' ? 3 : tower.type === 'pulse' ? 10 : 2;
+          ctx.lineWidth = tower.type === 'sniper' ? 3 : tower.type === 'pulse' ? 12 : 2;
           const target = gameState.enemies.find(e => Math.sqrt(Math.pow(e.x - tower.x, 2) + Math.pow(e.y - tower.y, 2)) < tower.range);
           if (target) {
             ctx.beginPath(); ctx.moveTo(tower.x + 20, tower.y + 20); ctx.lineTo(target.x + 20, target.y + 20); ctx.stroke();
@@ -90,15 +105,23 @@ export default function GameCanvas({ gameState, onTileClick }: GameCanvasProps) 
         ctx.fillStyle = color;
         ctx.shadowBlur = 10;
         ctx.shadowColor = color;
-        ctx.beginPath();
-        ctx.arc(enemy.x + 20, enemy.y + 20, size, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(enemy.x + 20, enemy.y + 20, size, 0, Math.PI * 2); ctx.fill();
         ctx.shadowBlur = 0;
-        ctx.fillStyle = "#000"; ctx.fillRect(enemy.x + 5, enemy.y - 10, 30, 4);
+        ctx.fillStyle = "#000"; ctx.fillRect(enemy.x + 5, enemy.y - 12, 30, 4);
         ctx.fillStyle = enemy.type === 'tank' ? '#16a34a' : '#22c55e';
-        ctx.fillRect(enemy.x + 5, enemy.y - 10, (enemy.health / enemy.maxHealth) * 30, 4);
+        ctx.fillRect(enemy.x + 5, enemy.y - 12, (enemy.health / enemy.maxHealth) * 30, 4);
       });
 
+      // 3. Floating Combat Text
+      gameState.floatingTexts.forEach(ft => {
+        ctx.fillStyle = ft.color;
+        ctx.globalAlpha = ft.life;
+        ctx.font = `bold ${14 + (1 - ft.life) * 10}px Monospace`;
+        ctx.fillText(ft.text, ft.x, ft.y);
+        ctx.globalAlpha = 1.0;
+      });
+
+      ctx.restore();
       requestAnimationFrame(render);
     };
 
