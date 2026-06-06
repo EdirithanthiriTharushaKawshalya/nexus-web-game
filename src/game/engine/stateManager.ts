@@ -2,12 +2,12 @@
 import { GameState, Player, Enemy, Tower } from "@/types/game";
 
 export const GAME_PATH = [
-  { x: 0, y: 300 },
-  { x: 200, y: 300 },
-  { x: 200, y: 100 },
-  { x: 600, y: 100 },
-  { x: 600, y: 500 },
-  { x: 800, y: 500 }
+  { x: 0, y: 320 },
+  { x: 200, y: 320 },
+  { x: 200, y: 80 },
+  { x: 600, y: 80 },
+  { x: 600, y: 480 },
+  { x: 800, y: 480 }
 ];
 
 export class StateManager {
@@ -171,7 +171,10 @@ export class StateManager {
     else if (type === 'pulse') { cost = 100; range = 100; damage = 25; fireRate = 1.0; }
     if (!player || player.gold < cost) return;
     const gridX = Math.floor(x / 40) * 40, gridY = Math.floor(y / 40) * 40;
+    
+    // STRICT BLOCKING ON ROAD
     if (this.isPointOnPath(gridX, gridY)) return;
+    
     if (this.state.towers.some(t => t.x === gridX && t.y === gridY)) return;
     const newTower: Tower = { id: Math.random().toString(36).substring(2, 9), ownerId: playerId, type: type as any, level: 1, x: gridX, y: gridY, range, damage, fireRate, lastShot: 0, upgradeCost: Math.floor(cost * 1.5) };
     this.state.towers.push(newTower);
@@ -191,16 +194,17 @@ export class StateManager {
   }
 
   private isPointOnPath(gridX: number, gridY: number): boolean {
-    const tx = gridX + 20, ty = gridY + 20;
+    // Exact tile matching for grid-aligned path
     for (let i = 0; i < GAME_PATH.length - 1; i++) {
-      const s = GAME_PATH[i], e = GAME_PATH[i + 1];
-      if (s.y === e.y) {
-        const minX = Math.min(s.x, e.x), maxX = Math.max(s.x, e.x);
-        if (Math.abs(ty - (s.y + 20)) < 20 && tx >= minX && tx <= maxX + 40) return true;
-      }
-      if (s.x === e.x) {
-        const minY = Math.min(s.y, e.y), maxY = Math.max(s.y, e.y);
-        if (Math.abs(tx - (s.x + 20)) < 20 && ty >= minY && ty <= maxY + 40) return true;
+      const s = GAME_PATH[i];
+      const e = GAME_PATH[i + 1];
+      const minX = Math.min(s.x, e.x);
+      const maxX = Math.max(s.x, e.x);
+      const minY = Math.min(s.y, e.y);
+      const maxY = Math.max(s.y, e.y);
+      
+      if (gridX >= minX && gridX <= maxX && gridY >= minY && gridY <= maxY) {
+        return true;
       }
     }
     return false;
@@ -209,18 +213,13 @@ export class StateManager {
   private spawnEnemy() {
     const r = Math.random();
     let type: Enemy['type'] = 'basic', h = 40 + (this.state.wave * 12), s = 60 + (this.state.wave * 2);
-    
-    // BOSS WAVE OVERRIDE
     if (this.state.wave === 10) {
-      type = 'tank';
-      h = 3000; // MASSIVE BOSS
-      s = 25;   // VERY SLOW
-      this.addFloatingText("FINAL BOSS INBOUND", 100, 300, "#facc15");
+      type = 'tank'; h = 3000; s = 25;
+      this.addFloatingText("FINAL BOSS INBOUND", 100, 320, "#facc15");
     } else {
       if (r > 0.85) { type = 'tank'; h *= 3.5; s *= 0.55; }
       else if (r > 0.7) { type = 'fast'; h *= 0.4; s *= 2.0; }
     }
-    
     this.state.enemies.push({ id: Math.random().toString(36).substr(2, 7), type, health: h, maxHealth: h, x: GAME_PATH[0].x, y: GAME_PATH[0].y, speed: s, pathIndex: 0, progress: 0 });
   }
 }
