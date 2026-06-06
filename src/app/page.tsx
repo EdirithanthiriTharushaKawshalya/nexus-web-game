@@ -81,7 +81,7 @@ export default function LandingPage() {
   // 2. VICTORY VIEW
   if (gameState && gameState.gameStatus === 'victory') {
     return (
-      <div className="flex flex-col items-center justify-center h-screen max-h-screen w-screen overflow-hidden bg-emerald-950 text-white p-4 relative bg-jungle">
+      <div className="flex flex-col items-center justify-center h-[100dvh] max-h-[100dvh] w-screen overflow-hidden bg-emerald-950 text-white p-4 relative bg-jungle">
         <div className="text-center w-full max-w-lg landscape:max-w-2xl animate-in fade-in zoom-in duration-700 panel-wood p-5 md:p-10 border-8 border-yellow-400 shadow-[0_0_80px_rgba(251,191,36,0.6)] relative overflow-hidden flex flex-col landscape:flex-row lg:flex-col items-center justify-between gap-4 md:gap-6">
           <div className="absolute -top-12 -left-12 w-32 h-32 bg-yellow-400/20 rounded-full blur-3xl animate-pulse" />
           
@@ -127,7 +127,7 @@ export default function LandingPage() {
   // 3. GAME OVER VIEW
   if (gameState && gameState.gameStatus === 'gameOver') {
     return (
-      <div className="flex flex-col items-center justify-center h-screen max-h-screen w-screen overflow-hidden bg-emerald-950/90 text-white p-4 relative bg-jungle">
+      <div className="flex flex-col items-center justify-center h-[100dvh] max-h-[100dvh] w-screen overflow-hidden bg-emerald-950/90 text-white p-4 relative bg-jungle">
         <div className="text-center w-full max-w-md landscape:max-w-2xl animate-in fade-in zoom-in duration-500 panel-wood p-4 md:p-8 border-4 border-amber-950 flex flex-col landscape:flex-row lg:flex-col items-center justify-between gap-4 md:gap-6">
           <div className="flex flex-col items-center landscape:items-start text-center landscape:text-left flex-1">
             <h1 className="text-4xl md:text-6xl font-black text-red-500 tracking-tight mb-2 md:mb-4 leading-none font-cartoon">
@@ -165,7 +165,7 @@ export default function LandingPage() {
   // 3. GAME VIEW (Active Raid)
   if (gameState && gameState.gameStatus === 'playing') {
     return (
-      <div className="flex flex-col landscape:flex-row lg:flex-row items-center justify-center h-screen max-h-screen w-screen bg-emerald-900 text-white p-3 landscape:p-2 lg:p-4 select-none overflow-hidden bg-jungle gap-4 landscape:gap-4 lg:gap-6">
+      <div className="flex flex-col landscape:flex-row lg:flex-row items-center justify-center h-[100dvh] max-h-[100dvh] w-screen bg-emerald-900 text-white p-3 landscape:p-2 lg:p-4 select-none overflow-hidden bg-jungle gap-4 landscape:gap-4 lg:gap-6">
         
         {/* Left column: Canvas Board */}
         <div className="flex flex-col items-center justify-center h-full landscape:h-full lg:h-full w-full max-w-[960px] landscape:w-auto relative">
@@ -199,7 +199,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="relative w-full h-full landscape:w-auto landscape:h-full group max-h-[70vh] landscape:max-h-[88vh] lg:max-h-[88vh]" style={{ aspectRatio: '16/10' }}>
+          <div className="relative w-full h-full landscape:w-auto landscape:h-full group max-h-[70dvh] landscape:max-h-[88dvh] lg:max-h-[88dvh]" style={{ aspectRatio: '16/10' }}>
             <GameCanvas 
               gameState={gameState} 
               selectedTowerId={selectedTowerId}
@@ -277,7 +277,7 @@ export default function LandingPage() {
         </div>
 
         {/* Right column: Wooden Sidebar (Shop & Status Dashboard) */}
-        <div className="w-full landscape:w-[220px] lg:w-[260px] flex flex-row landscape:flex-col lg:flex-col justify-between items-center panel-wood border-4 border-amber-950 p-2.5 landscape:p-3 lg:p-4 rounded-3xl h-auto landscape:h-full landscape:max-h-[88vh] lg:h-full lg:max-h-[88vh] gap-3 landscape:gap-1.5 lg:gap-4">
+        <div className="w-full landscape:w-[220px] lg:w-[260px] flex flex-row landscape:flex-col lg:flex-col justify-between items-center panel-wood border-4 border-amber-950 p-2.5 landscape:p-3 lg:p-4 rounded-3xl h-auto landscape:h-full landscape:max-h-[88dvh] lg:h-full lg:max-h-[88dvh] gap-3 landscape:gap-1.5 lg:gap-4">
           
           {/* Header info (only visible in desktop sidebar) */}
           <div className="hidden lg:block text-center mb-2 lg:mb-3 w-full">
@@ -378,7 +378,7 @@ export default function LandingPage() {
   // 4. WAR ROOM LOBBY
   if (roomCode) {
     return (
-      <div className="flex flex-col landscape:flex-row lg:flex-col lg:landscape:flex-col items-center justify-center h-screen max-h-screen w-screen overflow-hidden bg-emerald-950 text-white p-4 bg-jungle outline-none gap-4 md:gap-8 lg:gap-8">
+      <div className="flex flex-col landscape:flex-row lg:flex-col lg:landscape:flex-col items-center justify-center h-[100dvh] max-h-[100dvh] w-screen overflow-hidden bg-emerald-950 text-white p-4 bg-jungle outline-none gap-4 md:gap-8 lg:gap-8">
         <div className="text-center landscape:text-left lg:text-center lg:landscape:text-center flex flex-col items-center landscape:items-start lg:items-center lg:landscape:items-center mb-2 landscape:mb-0 lg:mb-6">
           <h1 className="text-3xl md:text-4xl font-cartoon mb-1 md:mb-2 tracking-tight uppercase italic text-yellow-400">WAR ROOM LOBBY</h1>
           <p className="text-yellow-100/60 text-[10px] md:text-xs uppercase tracking-widest font-cartoon-flat mb-2 md:mb-4">WAR PATH ENVELOPE: <span className="text-yellow-400 font-cartoon-sm">{roomCode}</span></p>
@@ -390,7 +390,7 @@ export default function LandingPage() {
           </button>
         </div>
         
-        <div className="panel-wood p-4 landscape:p-3 lg:p-8 lg:landscape:p-8 md:p-8 shadow-2xl relative overflow-hidden border-4 border-amber-950 outline-none w-full max-w-md landscape:max-w-sm lg:max-w-md lg:landscape:max-w-md landscape:max-h-[90vh] lg:max-h-none lg:landscape:max-h-none lg:overflow-y-visible lg:landscape:overflow-y-visible scrollbar-thin">
+        <div className="panel-wood p-4 landscape:p-3 lg:p-8 lg:landscape:p-8 md:p-8 shadow-2xl relative overflow-hidden border-4 border-amber-950 outline-none w-full max-w-md landscape:max-w-sm lg:max-w-md lg:landscape:max-w-md landscape:max-h-[90dvh] lg:max-h-none lg:landscape:max-h-none lg:overflow-y-visible lg:landscape:overflow-y-visible scrollbar-thin">
           <div className="absolute -top-24 -left-24 w-48 h-48 bg-yellow-600/10 rounded-full blur-[60px]" />
           
           <h2 className="text-xs md:text-base font-cartoon-sm mb-3 landscape:mb-1.5 lg:mb-6 lg:landscape:mb-6 md:mb-6 flex items-center gap-3 text-yellow-400">
@@ -446,7 +446,7 @@ export default function LandingPage() {
 
   // 5. COMMAND DASHBOARD
   return (
-    <div className="flex flex-col landscape:flex-row lg:flex-col lg:landscape:flex-col items-center justify-center h-screen max-h-screen w-screen overflow-hidden bg-emerald-950 text-white p-4 relative bg-jungle gap-4 md:gap-8 lg:gap-8">
+    <div className="flex flex-col landscape:flex-row lg:flex-col lg:landscape:flex-col items-center justify-center h-[100dvh] max-h-[100dvh] w-screen overflow-hidden bg-emerald-950 text-white p-4 relative bg-jungle gap-4 md:gap-8 lg:gap-8">
       <div className="absolute top-4 right-4 md:top-6 md:right-6 flex landscape:hidden lg:flex lg:landscape:flex items-center gap-2 md:gap-4 lg:gap-4 bg-amber-950/90 p-1.5 md:p-2.5 lg:p-2.5 rounded-2xl border-3 border-amber-700 shadow-xl z-20">
         <div className="flex flex-col items-end pr-1 md:pr-1.5 font-cartoon-flat">
            <span className="text-[7px] md:text-[9px] text-amber-500 uppercase tracking-widest font-bold">ACTIVE CHIEF</span>
@@ -483,7 +483,7 @@ export default function LandingPage() {
       )}
 
       <div className="flex flex-col landscape:grid landscape:grid-cols-2 gap-4 md:gap-6 lg:gap-6 w-full max-w-sm landscape:max-w-xl lg:max-w-4xl lg:landscape:max-w-4xl">
-        <div className="panel-wood p-4 landscape:p-3 lg:p-9 lg:landscape:p-9 md:p-9 rounded-[2rem] border-4 border-amber-950 shadow-2xl flex flex-col justify-between outline-none landscape:max-h-[85vh] lg:max-h-none lg:landscape:max-h-none landscape:overflow-y-auto lg:overflow-y-visible lg:landscape:overflow-y-visible scrollbar-thin">
+        <div className="panel-wood p-4 landscape:p-3 lg:p-9 lg:landscape:p-9 md:p-9 rounded-[2rem] border-4 border-amber-950 shadow-2xl flex flex-col justify-between outline-none landscape:max-h-[85dvh] lg:max-h-none lg:landscape:max-h-none landscape:overflow-y-auto lg:overflow-y-visible lg:landscape:overflow-y-visible scrollbar-thin">
           <div>
             <h2 className="text-lg md:text-3xl font-cartoon mb-1 md:mb-2 text-yellow-400 uppercase italic">Host Village</h2>
             <p className="text-yellow-100/70 text-[10px] md:text-sm mb-4 md:mb-8 leading-relaxed font-cartoon-flat landscape:hidden lg:block">Establish a new clan battlefield post and deploy defensive towers.</p>
@@ -496,7 +496,7 @@ export default function LandingPage() {
           </button>
         </div>
 
-        <div className="panel-stone p-4 landscape:p-3 lg:p-9 lg:landscape:p-9 md:p-9 rounded-[2rem] border-4 border-zinc-950 shadow-2xl flex flex-col justify-between text-center md:text-left outline-none landscape:max-h-[85vh] lg:max-h-none lg:landscape:max-h-none landscape:overflow-y-auto lg:overflow-y-visible lg:landscape:overflow-y-visible scrollbar-thin">
+        <div className="panel-stone p-4 landscape:p-3 lg:p-9 lg:landscape:p-9 md:p-9 rounded-[2rem] border-4 border-zinc-950 shadow-2xl flex flex-col justify-between text-center md:text-left outline-none landscape:max-h-[85dvh] lg:max-h-none lg:landscape:max-h-none landscape:overflow-y-auto lg:overflow-y-visible lg:landscape:overflow-y-visible scrollbar-thin">
           <div>
             <h2 className="text-lg md:text-3xl font-cartoon mb-1 md:mb-2 text-yellow-400 uppercase italic">Join War</h2>
             <p className="text-stone-300 text-[10px] md:text-sm mb-3 md:mb-6 leading-relaxed font-cartoon-flat landscape:hidden lg:block">Enter a war room code to intercept an active operation.</p>

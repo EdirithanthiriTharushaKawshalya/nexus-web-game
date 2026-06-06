@@ -24,7 +24,7 @@ export default function AuthPortal() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen max-h-screen w-screen overflow-hidden bg-emerald-950 text-white p-4 relative bg-jungle">
+    <div className="flex flex-col items-center justify-center h-[100dvh] max-h-[100dvh] w-screen overflow-hidden bg-emerald-950 text-white p-4 relative bg-jungle">
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-yellow-600/10 rounded-full blur-[120px]" />
       
       <div className="relative z-10 w-full max-w-md landscape:max-w-3xl lg:max-w-md lg:landscape:max-w-md flex flex-col landscape:flex-row lg:flex-col lg:landscape:flex-col items-center justify-center gap-4 landscape:gap-8 lg:gap-4 animate-in fade-in zoom-in duration-500">
@@ -36,7 +36,7 @@ export default function AuthPortal() {
           <p className="mt-3 md:mt-6 text-yellow-100/70 font-cartoon text-[10px] md:text-xs tracking-wider">VILLAGE ENTRY GATE</p>
         </div>
 
-        <div className="panel-wood p-5 landscape:p-4 lg:p-8 lg:landscape:p-8 md:p-8 shadow-2xl border-4 border-amber-950 w-full landscape:flex-1 lg:flex-none lg:landscape:flex-none max-h-[90vh] lg:max-h-none lg:landscape:max-h-none overflow-y-auto lg:overflow-y-visible lg:landscape:overflow-y-visible scrollbar-thin">
+        <div className="panel-wood p-5 landscape:p-4 lg:p-8 lg:landscape:p-8 md:p-8 shadow-2xl border-4 border-amber-950 w-full landscape:flex-1 lg:flex-none lg:landscape:flex-none max-h-[90dvh] lg:max-h-none lg:landscape:max-h-none overflow-y-auto lg:overflow-y-visible lg:landscape:overflow-y-visible scrollbar-thin">
           {/* Easy Google Login */}
           <button
             onClick={loginWithGoogle}
