@@ -417,16 +417,16 @@ export default function LandingPage() {
         </div>
 
         {/* Right column: Wooden Sidebar (Shop & Status Dashboard) */}
-        <div className="w-full landscape:w-[220px] lg:w-[260px] flex flex-row landscape:flex-col lg:flex-col justify-between items-center panel-wood border-4 border-amber-950 p-2.5 landscape:p-3 lg:p-4 rounded-3xl h-auto landscape:h-full landscape:max-h-[88dvh] lg:h-full lg:max-h-[88dvh] gap-3 landscape:gap-1.5 lg:gap-4">
+        <div className="w-full landscape:w-[220px] lg:w-[260px] flex flex-row landscape:flex-col lg:flex-col justify-start items-center panel-wood border-4 border-amber-950 p-2.5 landscape:p-3 lg:p-4 rounded-3xl h-auto landscape:h-full landscape:max-h-[88dvh] lg:h-full lg:max-h-[88dvh] gap-3 landscape:gap-1.5 lg:gap-4 overflow-hidden">
           
           {/* Header info (only visible in desktop sidebar) */}
-          <div className="hidden lg:block text-center mb-2 lg:mb-3 w-full">
+          <div className="hidden lg:block text-center mb-1 w-full">
             <h1 className="text-md lg:text-2xl font-cartoon leading-none text-yellow-400 uppercase italic text-shadow-none">VILLAGE DEFENSE</h1>
             <div className="text-[9px] font-black text-amber-300 uppercase tracking-widest mt-1 font-cartoon-flat">CODE: {roomCode}</div>
           </div>
 
           {/* Wave Counter & Elixir Core (only on landscape / desktop sidebar) */}
-          <div className="hidden landscape:flex lg:flex flex-row lg:flex-col gap-1.5 lg:gap-2 mb-2 lg:mb-3 w-full">
+          <div className="hidden landscape:flex lg:flex flex-row lg:flex-col gap-1.5 lg:gap-2 w-full">
             {/* Wave Counter */}
             <div className="bg-amber-950 border-2 border-amber-800 p-1.5 lg:p-2 rounded-xl flex items-center justify-center lg:justify-between gap-1 font-cartoon-flat leading-none shadow-inner flex-1 w-full">
               <span className="text-[7px] lg:text-[9px] text-amber-500 uppercase tracking-widest font-bold">WAVE</span>
@@ -449,20 +449,20 @@ export default function LandingPage() {
           </div>
 
           {/* Clan Members list (visible on both mobile & desktop sidebar) */}
-          <div className="flex flex-col gap-1 w-full max-h-[80px] landscape:max-h-[100px] lg:max-h-[140px] overflow-y-auto mb-2 lg:mb-3 border-b-2 border-amber-900/40 pb-2 lg:pb-3 scrollbar-thin">
+          <div className="flex flex-col gap-1 w-full max-h-[120px] landscape:max-h-[140px] lg:max-h-[180px] overflow-y-auto border-b-2 border-amber-900/40 pb-2 lg:pb-3 scrollbar-thin shrink-0">
             <div className="text-[7px] lg:text-[8px] font-black text-amber-300 uppercase tracking-widest mb-1 text-center font-cartoon-flat">CLAN MEMBERS</div>
             {gameState.players && Object.values(gameState.players).map(player => (
               <div 
                 key={player.id} 
-                className={`bg-amber-950/90 border-2 ${player.id === user.uid ? 'border-yellow-400 shadow-[inset_0_0_8px_rgba(234,179,8,0.2)]' : 'border-amber-900/60'} p-1.5 lg:p-2 rounded-xl flex flex-col font-cartoon-flat`}
+                className={`bg-amber-950/90 border-2 ${player.id === user.uid ? 'border-yellow-400 shadow-[inset_0_0_8px_rgba(234,179,8,0.2)]' : 'border-amber-900/60'} p-1.5 lg:p-2 rounded-xl flex flex-col font-cartoon-flat transition-colors`}
               >
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] lg:text-[10px] font-bold text-amber-100 truncate pr-2 max-w-[80px] landscape:max-w-[100px] lg:max-w-[130px]">{player.name}</span>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="text-[9px] lg:text-[11px] font-bold text-amber-100 truncate pr-1 flex-1">{player.name}</span>
                   {player.id === user.uid && (
-                    <span className="text-[6px] lg:text-[7px] font-cartoon bg-green-600 border border-green-400 px-1 rounded uppercase tracking-wider text-white">YOU</span>
+                    <span className="text-[6px] lg:text-[8px] font-cartoon bg-green-600 border border-green-400 px-1 rounded uppercase tracking-wider text-white shrink-0">YOU</span>
                   )}
                 </div>
-                <div className="flex justify-between items-center mt-0.5 lg:mt-1 text-[8px] lg:text-[9px] font-bold">
+                <div className="flex justify-between items-center mt-0.5 lg:mt-1 text-[8px] lg:text-[10px] font-bold">
                   <span className="text-yellow-400">🪙 {player.gold}</span>
                   <span className="text-blue-400">🏆 {player.score}</span>
                 </div>
@@ -471,7 +471,7 @@ export default function LandingPage() {
           </div>
 
           {/* Sidebar shop items */}
-          <div className="flex flex-row landscape:flex-col lg:flex-col gap-1.5 md:gap-2 flex-grow landscape:flex-none w-full justify-center landscape:justify-start">
+          <div className="flex flex-row landscape:flex-col lg:flex-col gap-1.5 md:gap-2 flex-grow landscape:flex-none w-full justify-center landscape:justify-start overflow-y-auto landscape:overflow-visible scrollbar-hide">
             {[
               { id: 'basic', name: 'ARCHER TOWER', cost: 50, color: 'bg-green-700 border-green-800 text-green-100', icon: '🏹' },
               { id: 'sniper', name: 'WIZARD TOWER', cost: 120, color: 'bg-purple-700 border-purple-800 text-purple-100', icon: '🧙‍♂️' },
@@ -501,7 +501,7 @@ export default function LandingPage() {
           </div>
 
           {/* Abort button */}
-          <div className="flex-none w-20 md:w-24 landscape:mt-2 lg:mt-4 landscape:w-full flex items-center">
+          <div className="flex-none w-20 md:w-24 landscape:mt-auto landscape:w-full flex items-center">
             <button 
               onClick={() => window.location.reload()} 
               className="w-full btn-cartoon btn-red py-1.5 md:py-2.5 rounded-xl text-[8px] md:text-xs font-cartoon"
