@@ -140,12 +140,19 @@ const useGame = (user) => {
                 clearInterval(gameLoopRef.current);
             return;
         }
+        let lastSync = 0;
         gameLoopRef.current = setInterval(async () => {
             try {
+                const now = Date.now();
                 const sm = stateManagerRef.current;
                 sm.update(1 / 30);
-                const newState = sm.getState();
-                await (0, database_1.update)((0, database_1.ref)(firebaseConfig_1.rtdb, `rooms/${roomCode}/state`), newState);
+                // THROTTLED SYNC: Only push to Firebase every 165ms (approx 6 FPS)
+                // This dramatically reduces lag while keeping the engine logic smooth.
+                if (now - lastSync > 165) {
+                    const newState = sm.getState();
+                    await (0, database_1.update)((0, database_1.ref)(firebaseConfig_1.rtdb, `rooms/${roomCode}/state`), newState);
+                    lastSync = now;
+                }
             }
             catch (e) {
                 console.error("Host loop error:", e);

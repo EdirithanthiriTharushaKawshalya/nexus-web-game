@@ -7,12 +7,12 @@ exports.GAME_PATH = [
     { x: 200, y: 100 },
     { x: 600, y: 100 },
     { x: 600, y: 500 },
-    { x: 800, y: 500 }
+    { x: 740, y: 500 }
 ];
 class StateManager {
     constructor() {
         this.spawnTimer = 0;
-        this.waveDelay = 5;
+        this.waveDelay = 2; // FASTER TRANSITION: 2 seconds
         this.enemiesToSpawn = 0;
         this.state = {
             players: {},
@@ -43,9 +43,7 @@ class StateManager {
         }
     }
     addPlayer(id, name) {
-        this.state.players[id] = {
-            id, name, lives: 20, gold: 150, score: 0
-        };
+        this.state.players[id] = { id, name, lives: 20, gold: 150, score: 0 };
     }
     removePlayer(id) {
         delete this.state.players[id];
@@ -65,22 +63,20 @@ class StateManager {
     update(dt) {
         if (this.state.gameStatus !== 'playing')
             return;
-        // Juice: Screen Shake Decay
         if (this.state.screenShake > 0) {
             this.state.screenShake -= dt * 3;
             if (this.state.screenShake < 0)
                 this.state.screenShake = 0;
         }
-        // Juice: Floating Text Update
         this.state.floatingTexts = this.state.floatingTexts.filter(ft => {
-            ft.life -= dt * 1.2;
-            ft.y -= dt * 25; // Drift up
+            ft.life -= dt * 1.5;
+            ft.y -= dt * 25;
             return ft.life > 0;
         });
         // 1. Spawning
         if (this.enemiesToSpawn > 0) {
             this.spawnTimer += dt;
-            if (this.spawnTimer >= 1.5) {
+            if (this.spawnTimer >= 0.6) { // FASTER SPAWNING: 0.6s
                 this.spawnEnemy();
                 this.enemiesToSpawn--;
                 this.spawnTimer = 0;
@@ -90,7 +86,7 @@ class StateManager {
             this.waveDelay -= dt;
             if (this.waveDelay <= 0) {
                 this.startNextWave();
-                this.waveDelay = 5;
+                this.waveDelay = 2;
             }
         }
         // 2. Enemies
@@ -109,8 +105,8 @@ class StateManager {
                 if (enemy.pathIndex >= exports.GAME_PATH.length - 1) {
                     this.state.nexusHealth -= 10;
                     enemy.health = 0;
-                    this.state.screenShake = 0.6; // TRIGGER SHAKE
-                    this.addFloatingText("CRITICAL HIT", enemy.x, enemy.y, "#ef4444");
+                    this.state.screenShake = 0.6;
+                    this.addFloatingText("BREACHED", enemy.x, enemy.y, "#ef4444");
                     if (this.state.nexusHealth <= 0)
                         this.state.gameStatus = 'gameOver';
                     return;

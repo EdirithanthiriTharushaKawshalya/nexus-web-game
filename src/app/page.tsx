@@ -121,13 +121,31 @@ export default function LandingPage() {
         <div className="flex flex-col items-center justify-center h-full landscape:h-full lg:h-full w-full max-w-[800px] landscape:w-auto relative">
           
           {/* Header (hidden in landscape mobile / desktop sidepanel to save space) */}
-          <div className="mb-3 flex justify-between w-full items-center px-2 landscape:hidden lg:hidden">
-            <div>
-              <h1 className="text-2xl font-cartoon leading-none text-yellow-400 uppercase italic">VILLAGE RAID</h1>
+          <div className="mb-2.5 flex flex-row w-full justify-between items-center gap-2 px-2.5 landscape:hidden lg:hidden">
+            {/* Wave Info */}
+            <div className="bg-amber-950 border-2 border-amber-700 px-2.5 py-1 rounded-xl text-xs font-cartoon-flat flex items-center gap-1 shadow-md">
+              <span className="text-amber-500 text-[8px] font-black uppercase tracking-wider block">WAVE</span>
+              <span className="text-sm font-cartoon text-yellow-400 leading-none">{gameState.wave}</span>
             </div>
-            <div className="bg-amber-950 border-2 border-amber-600 px-3 py-1.5 rounded-xl text-xs font-cartoon flex items-center gap-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-yellow-400 tracking-wider font-cartoon-sm">{roomCode}</span>
+
+            {/* Elixir Core Bar */}
+            <div className="flex-1 max-w-[140px] bg-amber-950 border-2 border-amber-700 px-2 py-1 rounded-xl flex flex-col gap-0.5 shadow-md">
+              <div className="flex justify-between items-center text-[7px] font-bold text-amber-200 font-cartoon-flat leading-none">
+                <span>ELIXIR CORE</span>
+                <span>{gameState.nexusHealth}%</span>
+              </div>
+              <div className="w-full h-1.5 bg-zinc-950 border border-amber-900 rounded-full overflow-hidden p-[1px]">
+                <div 
+                  className="h-full bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.max(0, (gameState.nexusHealth / gameState.maxNexusHealth) * 100)}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Room Code Info */}
+            <div className="bg-amber-950 border-2 border-amber-600 px-2.5 py-1 rounded-xl text-xs font-cartoon flex items-center gap-1.5 shadow-md">
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+              <span className="text-yellow-400 font-cartoon-sm text-[10px] tracking-wide">{roomCode}</span>
             </div>
           </div>
 
@@ -211,18 +229,58 @@ export default function LandingPage() {
         <div className="w-full landscape:w-[220px] lg:w-[260px] flex flex-row landscape:flex-col lg:flex-col justify-between panel-wood border-4 border-amber-950 p-3 landscape:p-3 lg:p-4 rounded-3xl h-auto landscape:h-full landscape:max-h-[88vh] lg:h-full lg:max-h-[88vh] gap-3 landscape:gap-0">
           
           {/* Header info (only visible in landscape / desktop sidebar) */}
-          <div className="hidden landscape:block text-center mb-2 lg:mb-4 w-full">
+          <div className="hidden landscape:block text-center mb-2 lg:mb-3 w-full">
             <h1 className="text-md lg:text-2xl font-cartoon leading-none text-yellow-400 uppercase italic text-shadow-none">VILLAGE DEFENSE</h1>
             <div className="text-[9px] font-black text-amber-300 uppercase tracking-widest mt-1 font-cartoon-flat">CODE: {roomCode}</div>
           </div>
 
-          <div className="hidden lg:block border-b-2 border-amber-900/40 pb-2 mb-3 text-center w-full font-cartoon-flat">
-            <div className="text-[8px] font-black text-emerald-400 uppercase tracking-widest">CHIEF</div>
-            <div className="text-[11px] font-bold text-amber-100 truncate">{user.displayName}</div>
+          {/* Wave Counter & Elixir Core (only on landscape / desktop sidebar) */}
+          <div className="hidden landscape:flex lg:flex flex-col gap-2 mb-3 w-full">
+            {/* Wave Counter */}
+            <div className="bg-amber-950 border-2 border-amber-800 p-2 rounded-xl flex items-center justify-between font-cartoon-flat leading-none shadow-inner">
+              <span className="text-[9px] text-amber-500 uppercase tracking-widest font-bold">Raid Wave</span>
+              <span className="text-sm font-cartoon text-yellow-400">⚔️ {gameState.wave}</span>
+            </div>
+
+            {/* Elixir Core Integrity Bar */}
+            <div className="bg-amber-950 border-2 border-amber-800 p-2.5 rounded-xl flex flex-col gap-1.5 font-cartoon-flat shadow-inner">
+              <div className="flex justify-between items-center text-[9px] font-bold text-amber-100">
+                <span className="text-[8px] text-pink-400 uppercase tracking-widest">ELIXIR CORE</span>
+                <span>{gameState.nexusHealth}%</span>
+              </div>
+              <div className="w-full h-3 bg-zinc-950 border border-amber-900 rounded-full overflow-hidden p-[2px]">
+                <div 
+                  className="h-full bg-gradient-to-r from-pink-500 via-pink-400 to-fuchsia-500 rounded-full transition-all duration-300"
+                  style={{ width: `${Math.max(0, (gameState.nexusHealth / gameState.maxNexusHealth) * 100)}%` }}
+                />
+              </div>
+            </div>
           </div>
 
-          {/* Gold Reserves Dashboard */}
-          <div className="bg-amber-950 border-2 border-amber-800 p-2.5 rounded-xl flex items-center justify-center gap-2 mb-0 landscape:mb-4 lg:mb-4 shadow-inner flex-1 landscape:flex-none">
+          {/* Clan Members list (only on landscape / desktop sidebar) */}
+          <div className="hidden landscape:flex lg:flex flex-col gap-1.5 w-full max-h-[140px] overflow-y-auto mb-3 border-b-2 border-amber-900/40 pb-3 scrollbar-thin">
+            <div className="text-[8px] font-black text-amber-300 uppercase tracking-widest mb-1 text-center font-cartoon-flat">CLAN MEMBERS</div>
+            {gameState.players && Object.values(gameState.players).map(player => (
+              <div 
+                key={player.id} 
+                className={`bg-amber-950/90 border-2 ${player.id === user.uid ? 'border-yellow-400 shadow-[inset_0_0_8px_rgba(234,179,8,0.2)]' : 'border-amber-900/60'} p-2 rounded-xl flex flex-col font-cartoon-flat`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold text-amber-100 truncate pr-2 max-w-[100px] lg:max-w-[130px]">{player.name}</span>
+                  {player.id === user.uid && (
+                    <span className="text-[7px] font-cartoon bg-green-600 border border-green-400 px-1 rounded uppercase tracking-wider text-white">YOU</span>
+                  )}
+                </div>
+                <div className="flex justify-between items-center mt-1 text-[9px] font-bold">
+                  <span className="text-yellow-400">🪙 {player.gold}</span>
+                  <span className="text-blue-400">🏆 {player.score}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Gold Reserves Dashboard (Mobile Portrait only) */}
+          <div className="bg-amber-950 border-2 border-amber-800 p-2.5 rounded-xl flex items-center justify-center gap-2 mb-0 landscape:hidden lg:hidden shadow-inner flex-1 landscape:flex-none">
             <span className="text-sm lg:text-lg">🪙</span>
             <div className="flex flex-col items-center justify-center font-cartoon-flat leading-none">
               <span className="text-[8px] text-amber-500 uppercase tracking-widest font-bold hidden lg:block">GOLD RESERVES</span>

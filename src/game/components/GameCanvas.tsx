@@ -15,6 +15,18 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
   const containerRef = useRef<HTMLDivElement>(null);
   const bgCanvasRef = useRef<HTMLCanvasElement | null>(null);
 
+  const stateRef = useRef(gameState);
+  const selectedTowerIdRef = useRef(selectedTowerId);
+
+  // Keep refs synchronized with the latest props without triggering layout rerenders
+  useEffect(() => {
+    stateRef.current = gameState;
+  }, [gameState]);
+
+  useEffect(() => {
+    selectedTowerIdRef.current = selectedTowerId;
+  }, [selectedTowerId]);
+
   // Pre-render static grass, road, stones, and trees onto an offscreen canvas once
   const preRenderBackground = () => {
     const bgCanvas = document.createElement("canvas");
@@ -152,11 +164,11 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
   };
 
   // Helper to find closest enemy in range for orientation
-  const findTargetEnemy = (tower: Tower): Enemy | null => {
+  const findTargetEnemy = (tower: Tower, enemies: Enemy[]): Enemy | null => {
     let closestEnemy: Enemy | null = null;
     let minDistance = tower.range;
-    if (gameState.enemies) {
-      gameState.enemies.forEach(enemy => {
+    if (enemies) {
+      enemies.forEach(enemy => {
         const dist = Math.sqrt(Math.pow(enemy.x - tower.x, 2) + Math.pow(enemy.y - tower.y, 2));
         if (dist < minDistance) {
           minDistance = dist;
@@ -173,12 +185,20 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    let animId: number;
+    let active = true;
+
     const render = () => {
+      if (!active) return;
+
+      const currentGameState = stateRef.current;
+      const currentSelectedTowerId = selectedTowerIdRef.current;
+
       ctx.save();
 
       // Screen Shake
-      if (gameState.screenShake && gameState.screenShake > 0) {
-        const shake = gameState.screenShake * 16;
+      if (currentGameState.screenShake && currentGameState.screenShake > 0) {
+        const shake = currentGameState.screenShake * 16;
         const dx = (Math.random() - 0.5) * shake;
         const dy = (Math.random() - 0.5) * shake;
         ctx.translate(dx, dy);
@@ -268,11 +288,11 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
       ctx.fillText("TOWN HALL", nx + 10, ny - 8);
 
       // 5. Draw Towers
-      if (gameState.towers) {
-        gameState.towers.forEach((tower) => {
+      if (currentGameState.towers) {
+        currentGameState.towers.forEach((tower) => {
           const tx = tower.x;
           const ty = tower.y;
-          const isSelected = selectedTowerId === tower.id;
+          const isSelected = currentSelectedTowerId === tower.id;
 
           // Selection circle & range indicator
           if (isSelected) {
@@ -313,7 +333,7 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
             ctx.strokeRect(tx + 10, ty + 6, 20, 6);
 
             // Little Wizard
-            const target = findTargetEnemy(tower);
+            const target = findTargetEnemy(tower, currentGameState.enemies || []);
             let angle = 0;
             if (target) {
               angle = Math.atan2((target.y + 20) - (ty + 4), (target.x + 20) - (tx + 20));
@@ -386,7 +406,7 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
             ctx.strokeRect(tx + 10, ty + 10, 20, 20);
 
             // Turret barrel direction rotation
-            const target = findTargetEnemy(tower);
+            const target = findTargetEnemy(tower, currentGameState.enemies || []);
             let angle = 0;
             if (target) {
               angle = Math.atan2((target.y + 20) - (ty + 20), (target.x + 20) - (tx + 20));
@@ -441,7 +461,7 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
             ctx.strokeRect(tx + 5, ty + 4, 30, 8);
 
             // Little pink archer on top platform
-            const target = findTargetEnemy(tower);
+            const target = findTargetEnemy(tower, currentGameState.enemies || []);
             let lookAngle = 0;
             if (target) {
               lookAngle = Math.atan2((target.y + 20) - (ty + 8), (target.x + 20) - (tx + 20));
@@ -498,13 +518,13 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
       }
 
       // 6. Draw Projectiles
-      if (gameState.towers) {
+      if (currentGameState.towers) {
         const now = Date.now();
         const shotDuration = 180; // ms to hit
-        gameState.towers.forEach((tower) => {
+        currentGameState.towers.forEach((tower) => {
           const timeSinceShot = now - tower.lastShot;
           if (timeSinceShot < shotDuration) {
-            const target = findTargetEnemy(tower);
+            const target = findTargetEnemy(tower, currentGameState.enemies || []);
             if (target) {
               const t = timeSinceShot / shotDuration;
               const sx = tower.x + 20;
@@ -589,8 +609,8 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
       }
 
       // 7. Draw Cute Soldiers (Enemies)
-      if (gameState.enemies) {
-        gameState.enemies.forEach((enemy) => {
+      if (currentGameState.enemies) {
+        currentGameState.enemies.forEach((enemy) => {
           const ex = enemy.x;
           const ey = enemy.y;
 
@@ -775,8 +795,8 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
       }
 
       // 8. Draw Floating Texts (LVL UP, Gold, etc.)
-      if (gameState.floatingTexts) {
-        gameState.floatingTexts.forEach((ft) => {
+      if (currentGameState.floatingTexts) {
+        currentGameState.floatingTexts.forEach((ft) => {
           ctx.save();
           ctx.globalAlpha = Math.max(0, ft.life);
           
@@ -798,12 +818,15 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick }: 
       }
 
       ctx.restore();
-      requestAnimationFrame(render);
+      animId = requestAnimationFrame(render);
     };
 
-    const animId = requestAnimationFrame(render);
-    return () => cancelAnimationFrame(animId);
-  }, [gameState, selectedTowerId]);
+    animId = requestAnimationFrame(render);
+    return () => {
+      active = false;
+      cancelAnimationFrame(animId);
+    };
+  }, []);
 
   const handleClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
