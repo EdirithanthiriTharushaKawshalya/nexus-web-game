@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { rtdb } from "@/lib/firebase/firebaseConfig";
 import { ref, onValue, set, update, onDisconnect, remove, get, push, onChildAdded } from "firebase/database";
-import { GameState, Player, Tower } from "@/types/game";
+import { GameState, Player } from "@/types/game";
 import { StateManager } from "@/game/engine/stateManager";
+import { INITIAL_GOLD } from "@/game/config/gameConfig";
 
 export const useGame = (user: any) => {
   const [roomCode, setRoomCode] = useState<string | null>(null);
@@ -22,25 +23,15 @@ export const useGame = (user: any) => {
       const code = Math.random().toString(36).substring(2, 8).toUpperCase();
       const roomRef = ref(rtdb, `rooms/${code}`);
       
-      const initialPlayer: Player = {
-        id: user.uid,
-        name: user.displayName || "Commander",
-        lives: 20,
-        gold: 150,
-        score: 0
-      };
-
-      const initialState: GameState = {
-        players: { [user.uid]: initialPlayer },
-        enemies: [],
-        towers: [],
-        floatingTexts: [],
-        gameStatus: 'lobby',
-        wave: 0,
-        nexusHealth: 100,
-        maxNexusHealth: 100,
-        enemiesRemaining: 0,
-        screenShake: 0
+      const initialState = stateManagerRef.current.createInitialState();
+      initialState.players = {
+        [user.uid]: {
+          id: user.uid,
+          name: user.displayName || "Commander",
+          lives: 20,
+          gold: INITIAL_GOLD,
+          score: 0
+        }
       };
 
       await set(roomRef, {
@@ -80,7 +71,7 @@ export const useGame = (user: any) => {
         id: user.uid,
         name: user.displayName || "Commander",
         lives: 20,
-        gold: 150,
+        gold: INITIAL_GOLD,
         score: 0
       };
 
