@@ -847,7 +847,7 @@ export default function GameCanvas({ gameState, selectedTowerId, onTileClick, go
   };
 
   return (
-    <div ref={containerRef} className="relative w-full landscape:w-auto landscape:h-full max-w-[960px] border-4 md:border-[6px] border-amber-950 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl bg-emerald-950" style={{ aspectRatio: '16/10' }}>
+    <div ref={containerRef} className="relative w-full h-full border-4 md:border-[6px] border-amber-950 rounded-2xl md:rounded-[2rem] overflow-hidden shadow-2xl bg-emerald-950">
       <canvas
         ref={canvasRef}
         width={960}

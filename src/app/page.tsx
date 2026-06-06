@@ -244,7 +244,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="relative w-full h-full landscape:w-auto landscape:h-full group max-h-[70dvh] landscape:max-h-[88dvh] lg:max-h-[88dvh]" style={{ aspectRatio: '16/10' }}>
+          <div className="relative w-full h-auto group max-h-[72dvh] landscape:max-h-[82dvh] lg:max-h-[82dvh]" style={{ aspectRatio: '16/10' }}>
             {/* FULLSCREEN TOGGLE */}
             <button 
               onClick={toggleFullscreen}
