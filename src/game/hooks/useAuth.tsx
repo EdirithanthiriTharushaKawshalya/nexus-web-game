@@ -11,11 +11,12 @@ import {
 import { auth } from "@/lib/firebase/firebaseConfig";
 
 interface AuthContextType {
-  user: any | null; // Using any for mock flexibility
+  user: any | null;
   loading: boolean;
   loginWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
   isDevMode: boolean;
+  authError: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,9 +25,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [isDevMode, setIsDevMode] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    // If Firebase isn't configured, enable Dev Mode
     if (!auth) {
       console.warn("Firebase not configured. Running in Development Mock mode.");
       setIsDevMode(true);
@@ -42,12 +43,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const loginWithGoogle = async () => {
+    setAuthError(null);
     if (isDevMode) {
-      // Mock login for development
       setUser({
-        uid: "mock-user-" + Math.floor(Math.random() * 1000),
+        uid: "guest-" + Math.random().toString(36).substr(2, 5),
         displayName: "Guest Commander",
-        email: "guest@example.com",
+        email: "guest@nexus.com",
       });
       return;
     }
@@ -56,8 +57,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed:", error);
+      setAuthError(error.message || "Failed to establish secure link.");
     }
   };
 

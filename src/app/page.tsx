@@ -2,69 +2,101 @@
 
 import { useAuth } from "@/game/hooks/useAuth";
 import { useGame } from "@/game/hooks/useGame";
-import { useState } from "react";
-
+import { useState, useEffect } from "react";
 import GameCanvas from "@/game/components/GameCanvas";
+import GameLoadingScreen from "@/game/components/GameLoadingScreen";
 
 export default function LandingPage() {
-  const { user, loading, logout, loginWithGoogle } = useAuth();
-  const { roomCode, gameState, error, createRoom, joinRoom, startGame, placeTower, isHost } = useGame(user);
+  const { user, loading, logout, loginWithGoogle, authError } = useAuth();
+  const { roomCode, gameState, error: gameError, createRoom, joinRoom, startGame, placeTower, isHost } = useGame(user);
+  
   const [inputRoomCode, setInputRoomCode] = useState("");
   const [selectedTower, setSelectedTower] = useState<string>("basic");
+  const [isConnecting, setIsConnecting] = useState(false);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white">
-        <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
-        <p className="text-blue-400 font-mono tracking-widest animate-pulse uppercase">Synchronizing Auth...</p>
-      </div>
-    );
+  // Auto-join handling if we have a URL param (future proofing)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get('room');
+    if (code && user && !roomCode) {
+      joinRoom(code);
+    }
+  }, [user]);
+
+  if (loading || isConnecting) {
+    return <GameLoadingScreen message={isConnecting ? "Establishing Secure Link..." : "Synchronizing Credentials..."} />;
   }
 
+  // 1. AUTH SCREEN (Sign In / Welcome)
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white p-4 overflow-hidden">
-        <h1 className="text-5xl md:text-6xl font-black mb-6 md:mb-8 text-center text-transparent bg-clip-text bg-gradient-to-b from-blue-400 to-blue-700 tracking-tighter">
-          NEXUS
-        </h1>
-        <p className="text-lg md:text-xl mb-8 text-slate-300 max-w-xs md:max-w-md text-center font-light leading-tight">
-          Defend the core with up to 8 commanders in real-time tactical combat.
-        </p>
-        <button
-          onClick={loginWithGoogle}
-          className="w-full max-w-[280px] bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold transition-all transform hover:scale-105 shadow-lg shadow-blue-900/40 active:scale-95"
-        >
-          Initialize Command
-        </button>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white p-4 overflow-hidden relative">
+        {/* Background FX */}
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px]" />
+        
+        <div className="relative z-10 flex flex-col items-center max-w-sm w-full text-center">
+          <div className="mb-8">
+            <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-b from-blue-400 to-blue-800 tracking-tighter italic leading-none">
+              NEXUS
+            </h1>
+            <div className="h-1 w-24 bg-blue-600 mx-auto mt-2 rounded-full shadow-[0_0_15px_#3b82f6]" />
+          </div>
+
+          <p className="text-xl mb-12 text-slate-300 font-light tracking-tight px-4 leading-snug">
+            Strategic Co-op Tower Defense. <br/>
+            <span className="text-blue-500 font-bold uppercase text-xs tracking-[0.2em] mt-2 block">Level 08 Authorization Required</span>
+          </p>
+
+          <button
+            onClick={async () => {
+              setIsConnecting(true);
+              await loginWithGoogle();
+              setIsConnecting(false);
+            }}
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-black text-lg transition-all shadow-[0_10px_40px_-10px_rgba(37,99,235,0.5)] transform hover:-translate-y-1 active:scale-95 flex items-center justify-center gap-4 group"
+          >
+            <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center text-blue-600 font-black text-xs">G</div>
+            INITIALIZE COMMAND
+          </button>
+
+          {authError && (
+            <div className="mt-6 p-4 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-xs font-bold uppercase tracking-widest animate-shake">
+              {authError}
+            </div>
+          )}
+
+          <p className="mt-12 text-slate-500 text-[10px] uppercase font-black tracking-[0.3em]">Secure link via Firebase Auth</p>
+        </div>
       </div>
     );
   }
 
-  // GAME OVER VIEW
+  // 2. GAME OVER VIEW
   if (gameState && gameState.gameStatus === 'gameOver') {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-950 text-white p-4">
         <div className="text-center w-full max-w-md animate-in fade-in zoom-in duration-500">
-          <h1 className="text-5xl md:text-8xl font-black text-red-600 tracking-tighter mb-4 drop-shadow-2xl leading-none">
-            NEXUS BREACHED
+          <h1 className="text-6xl md:text-8xl font-black text-red-600 tracking-tighter mb-4 drop-shadow-2xl leading-none italic uppercase">
+            Nexus Breached
           </h1>
-          <p className="text-lg md:text-2xl text-slate-400 mb-8 md:mb-12 font-light">The core has been compromised.</p>
+          <p className="text-lg md:text-2xl text-slate-400 mb-8 md:mb-12 font-light">Operation terminated. Sector lost.</p>
           
-          <div className="grid grid-cols-1 gap-2 md:gap-4 mb-8 md:mb-12">
+          <div className="grid grid-cols-1 gap-2 md:gap-3 mb-10">
             {Object.values(gameState.players).sort((a,b) => b.score - a.score).map((p, i) => (
-              <div key={p.id} className="bg-slate-900 border border-slate-800 p-3 md:p-4 rounded-xl flex justify-between items-center">
-                <div className="flex items-center gap-3 md:gap-4">
-                  <span className="text-slate-500 font-mono text-xs md:text-sm">#0{i+1}</span>
-                  <span className="font-bold text-sm md:text-base">{p.name}</span>
+              <div key={p.id} className="bg-slate-900/50 border border-slate-800 p-4 rounded-2xl flex justify-between items-center group hover:border-blue-500/30 transition-all">
+                <div className="flex items-center gap-4">
+                  <span className="text-slate-600 font-black font-mono text-sm">#0{i+1}</span>
+                  <span className="font-bold text-slate-200">{p.name}</span>
                 </div>
-                <span className="text-blue-400 font-mono font-bold text-sm md:text-base">{p.score} PTS</span>
+                <span className="text-blue-500 font-mono font-black">{p.score} <span className="text-[10px] text-slate-600">PTS</span></span>
               </div>
             ))}
           </div>
 
           <button 
             onClick={() => window.location.reload()}
-            className="w-full bg-white text-black py-4 rounded-full font-black text-lg md:text-xl hover:bg-blue-500 hover:text-white transition-all transform active:scale-95"
+            className="w-full bg-white text-black py-5 rounded-2xl font-black text-xl hover:bg-blue-600 hover:text-white transition-all transform active:scale-95 shadow-xl"
           >
             RETURN TO COMMAND
           </button>
@@ -73,20 +105,27 @@ export default function LandingPage() {
     );
   }
 
-  // GAME VIEW
+  // 3. GAME VIEW (Active Mission)
   if (gameState && gameState.gameStatus === 'playing') {
     return (
-      <div className="flex flex-col items-center justify-start md:justify-center min-h-screen bg-slate-950 text-white p-2 md:p-4 font-sans selection:bg-blue-500">
-        <div className="mb-2 md:mb-4 flex justify-between w-full max-w-[800px] items-center px-2">
+      <div className="flex flex-col items-center justify-start lg:justify-center min-h-screen bg-slate-950 text-white p-2 md:p-6 font-sans selection:bg-blue-500 overflow-hidden">
+        <div className="mb-4 flex justify-between w-full max-w-[800px] items-center px-2">
           <div>
-            <h1 className="text-xl md:text-3xl font-black tracking-tighter leading-none text-blue-500 uppercase italic">Nexus Defense</h1>
+            <h1 className="text-2xl md:text-3xl font-black tracking-tighter leading-none text-blue-500 uppercase italic">Active Sector</h1>
           </div>
-          <div className="bg-blue-600/10 border border-blue-500/20 px-2 md:px-3 py-1 rounded-lg text-[10px] md:text-xs font-mono">
-            ID: <span className="text-white font-bold">{roomCode}</span>
+          <div className="flex items-center gap-3">
+             <div className="hidden md:block text-right">
+                <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Lead Commander</div>
+                <div className="text-[10px] font-bold text-blue-400">{Object.values(gameState.players).find(p => p.id === user.uid) ? user.displayName : "External Ops"}</div>
+             </div>
+             <div className="bg-blue-600/10 border border-blue-500/30 px-3 py-1.5 rounded-lg text-xs font-mono flex items-center gap-2">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-white font-bold tracking-widest">{roomCode}</span>
+             </div>
           </div>
         </div>
         
-        <div className="relative w-full max-w-[800px]">
+        <div className="relative w-full max-w-[800px] group">
           <GameCanvas 
             gameState={gameState} 
             onTileClick={(x, y) => placeTower(selectedTower, x, y)} 
@@ -94,44 +133,45 @@ export default function LandingPage() {
           
           {gameState.towers.length === 0 && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none p-4">
-              <div className="bg-blue-600/90 text-white px-4 md:px-6 py-2 md:py-3 rounded-full font-black text-[10px] md:text-sm animate-bounce shadow-2xl border-2 border-white/20 uppercase tracking-widest text-center">
-                Tap grid to deploy defenses
+              <div className="bg-blue-600/90 text-white px-8 py-4 rounded-2xl font-black text-sm animate-bounce shadow-2xl border-2 border-white/20 uppercase tracking-[0.2em] text-center">
+                Tap Tactical Grid to Deploy
               </div>
             </div>
           )}
         </div>
 
-        <div className="mt-4 md:mt-6 w-full max-w-[800px] flex flex-wrap md:flex-nowrap gap-2 md:gap-4">
-          <div className="grid grid-cols-3 gap-2 w-full md:flex-1">
+        <div className="mt-4 md:mt-8 w-full max-w-[800px] flex flex-col md:flex-row gap-3 md:gap-6">
+          <div className="grid grid-cols-3 gap-2 flex-1">
             {[
-              { id: 'basic', name: 'SENTRY', cost: 50, color: 'bg-blue-600' },
-              { id: 'sniper', name: 'SNIPER', cost: 120, color: 'bg-purple-600' },
-              { id: 'pulse', name: 'PULSE', cost: 100, color: 'bg-yellow-600' }
+              { id: 'basic', name: 'SENTRY', cost: 50, color: 'bg-blue-600', icon: 'S' },
+              { id: 'sniper', name: 'SNIPER', cost: 120, color: 'bg-purple-600', icon: 'N' },
+              { id: 'pulse', name: 'PULSE', cost: 100, color: 'bg-yellow-600', icon: 'P' }
             ].map((t) => (
               <button
                 key={t.id}
                 onClick={() => setSelectedTower(t.id)}
-                className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-1 md:gap-4 p-2 md:p-4 rounded-xl md:rounded-2xl border-2 transition-all ${
+                className={`flex flex-col md:flex-row items-center justify-center md:justify-start gap-2 md:gap-4 p-3 md:p-4 rounded-2xl border-2 transition-all transform active:scale-95 ${
                   selectedTower === t.id 
-                    ? 'bg-slate-800 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.3)]' 
-                    : 'bg-slate-900/50 border-slate-800'
+                    ? 'bg-slate-800 border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.3)]' 
+                    : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'
                 }`}
               >
-                <div className={`w-8 h-8 md:w-10 md:h-10 ${t.color} rounded-lg md:rounded-xl flex items-center justify-center font-black shadow-lg text-xs md:text-base`}>
-                  {t.name[0]}
+                <div className={`w-10 h-10 md:w-12 md:h-12 ${t.color} rounded-xl flex items-center justify-center font-black shadow-lg text-lg`}>
+                  {t.icon}
                 </div>
                 <div className="text-center md:text-left">
-                  <div className="text-[8px] md:text-xs font-black tracking-tight">{t.name}</div>
-                  <div className="text-[8px] md:text-[10px] text-yellow-500 font-bold uppercase font-mono tracking-tighter">💰{t.cost}</div>
+                  <div className="text-[10px] md:text-xs font-black tracking-widest">{t.name}</div>
+                  <div className="text-[10px] text-yellow-500 font-bold uppercase font-mono tracking-tight mt-0.5">💰{t.cost}</div>
                 </div>
               </button>
             ))}
           </div>
           
-          <div className="w-full md:w-auto bg-slate-900/50 border-2 border-slate-800 p-3 md:p-4 rounded-xl md:rounded-2xl flex md:flex-col justify-between md:justify-center items-center md:min-w-[120px]">
-            <div className="text-[8px] md:text-[10px] text-slate-500 uppercase font-bold md:mb-1">Credits</div>
-            <div className="text-lg md:text-xl font-black text-yellow-500 font-mono">
-              💰 {gameState.players[user?.uid]?.gold || 0}
+          <div className="bg-slate-900/80 border-2 border-slate-800 p-4 rounded-2xl flex md:flex-col justify-between md:justify-center items-center md:min-w-[140px] shadow-xl">
+            <div className="text-[10px] text-slate-500 uppercase font-black tracking-widest md:mb-1">Combat Credits</div>
+            <div className="text-2xl font-black text-yellow-500 font-mono flex items-center gap-2">
+              <span className="text-lg opacity-50">💰</span>
+              {gameState.players[user?.uid]?.gold || 0}
             </div>
           </div>
         </div>
@@ -139,49 +179,64 @@ export default function LandingPage() {
     );
   }
 
+  // 4. LOBBY VIEW
   if (roomCode) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white p-4">
-        <div className="max-w-md w-full">
-          <div className="text-center mb-6 md:mb-8">
-            <h1 className="text-3xl md:text-4xl font-black mb-2 tracking-tighter uppercase italic text-blue-500">Nexus Lobby</h1>
-            <p className="text-slate-500 text-xs md:text-sm uppercase tracking-widest font-bold">Sector: <span className="text-blue-400 font-mono">{roomCode}</span></p>
+        <div className="max-w-md w-full animate-in slide-in-from-bottom-8 duration-500">
+          <div className="text-center mb-8">
+            <h1 className="text-4xl font-black mb-2 tracking-tighter uppercase italic text-blue-500">Nexus Lobby</h1>
+            <p className="text-slate-500 text-sm uppercase tracking-widest font-bold">Secure Connection: <span className="text-blue-400 font-mono">{roomCode}</span></p>
           </div>
           
-          <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden">
-            <h2 className="text-base md:text-lg font-black mb-4 md:mb-6 flex items-center gap-2 text-slate-200">
-              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+          <div className="bg-slate-800/80 backdrop-blur border-2 border-slate-700 rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden">
+            <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-600/10 rounded-full blur-[60px]" />
+            
+            <h2 className="text-lg font-black mb-6 flex items-center gap-3 text-slate-200">
+              <div className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
               DEPLOYMENT LIST
             </h2>
             
-            <div className="space-y-2 md:space-y-3 mb-8 md:mb-10">
+            <div className="space-y-3 mb-12">
               {gameState && Object.values(gameState.players).map((p) => (
-                <div key={p.id} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-xl border border-slate-700/50">
-                  <span className="font-bold text-blue-300 text-sm md:text-base truncate mr-2">{p.name}</span>
-                  <span className="text-[8px] md:text-10px font-black bg-blue-500 px-2 py-0.5 rounded text-white uppercase tracking-widest shrink-0">
+                <div key={p.id} className="flex items-center justify-between p-4 bg-slate-900/60 rounded-2xl border border-slate-700/50 group hover:border-blue-500/30 transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-black border border-slate-700 text-slate-500">
+                      {p.name.charAt(0)}
+                    </div>
+                    <span className="font-bold text-slate-200 text-base">{p.name}</span>
+                  </div>
+                  <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${p.id === user.uid ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-500'}`}>
                     {p.id === user.uid ? "You" : "Ready"}
                   </span>
                 </div>
+              ))}
+              {/* Slot indicators */}
+              {[...Array(Math.max(0, 4 - (gameState ? Object.keys(gameState.players).length : 0)))].map((_, i) => (
+                 <div key={i} className="p-4 rounded-2xl border border-dashed border-slate-800 flex items-center justify-center text-slate-700 text-[10px] font-black uppercase tracking-[0.3em]">
+                    Empty Slot
+                 </div>
               ))}
             </div>
 
             {isHost ? (
               <button 
                 onClick={startGame}
-                className="w-full bg-blue-600 hover:bg-blue-500 py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-xl md:text-2xl transition-all shadow-xl active:scale-95 shadow-blue-900/40"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 py-6 rounded-3xl font-black text-2xl transition-all shadow-[0_15px_40px_-10px_rgba(37,99,235,0.5)] active:scale-95 group"
               >
                 LAUNCH MISSION
+                <span className="block text-[10px] text-blue-200 mt-1 font-black tracking-widest uppercase opacity-60 group-hover:opacity-100">Initiate Drop Sequence</span>
               </button>
             ) : (
-              <div className="text-center p-4 bg-slate-900/50 rounded-xl border border-dashed border-slate-700 text-slate-500 font-bold uppercase tracking-widest text-xs md:text-sm">
-                Waiting for Lead Commander...
+              <div className="text-center p-6 bg-slate-900/50 rounded-2xl border border-dashed border-slate-700 text-slate-500 font-bold uppercase tracking-widest text-xs">
+                Waiting for Lead Commander to Deploy...
               </div>
             )}
           </div>
           
           <button 
             onClick={() => window.location.reload()} 
-            className="w-full mt-6 text-slate-600 hover:text-slate-400 text-[10px] font-black uppercase tracking-widest transition-colors"
+            className="w-full mt-8 text-slate-600 hover:text-slate-400 text-xs font-black uppercase tracking-[0.3em] transition-colors"
           >
             Abort Connection
           </button>
@@ -190,59 +245,80 @@ export default function LandingPage() {
     );
   }
 
+  // 5. COMMAND DASHBOARD (Create / Join)
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white p-4">
-      <div className="absolute top-4 right-4 flex items-center gap-2 md:gap-4">
-        <span className="font-bold text-blue-400 tracking-tight text-xs md:text-base truncate max-w-[100px] md:max-w-none">{user?.displayName}</span>
-        <button onClick={logout} className="text-[8px] md:text-[10px] text-slate-500 border border-slate-700 px-2 py-1 rounded hover:bg-slate-800 uppercase tracking-tighter">
-          Out
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-900 text-white p-4 relative">
+       {/* UI FX */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_var(--tw-gradient-stops))] from-blue-900/10 via-slate-900 to-slate-900" />
+      
+      <div className="absolute top-6 right-6 flex items-center gap-4 bg-slate-800/50 p-2 rounded-2xl border border-slate-700/50 backdrop-blur">
+        <div className="flex flex-col items-end pr-2">
+           <span className="text-[8px] font-black text-blue-500 uppercase tracking-widest">Active Commander</span>
+           <span className="font-bold text-slate-200 text-sm tracking-tight">{user?.displayName}</span>
+        </div>
+        <button onClick={logout} className="bg-slate-900 hover:bg-red-900/20 text-slate-500 hover:text-red-400 p-2.5 rounded-xl border border-slate-700 transition-all group">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
         </button>
       </div>
 
-      <div className="text-center mb-12 md:mb-16">
-        <h1 className="text-6xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-100 to-blue-400 tracking-tighter">
+      <div className="text-center mb-16 relative">
+        <h1 className="text-7xl md:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-blue-100 to-blue-400 tracking-tighter italic drop-shadow-2xl">
           NEXUS
         </h1>
-        <div className="h-1 w-16 md:w-24 bg-blue-600 mx-auto mt-2 rounded-full" />
+        <div className="h-1 w-24 bg-blue-600 mx-auto mt-2 rounded-full shadow-[0_0_15px_#3b82f6]" />
       </div>
 
-      {error && (
-        <div className="bg-red-500/20 border border-red-500 text-red-200 px-4 py-2 rounded mb-6 text-xs md:text-sm uppercase font-black tracking-widest">
-          {error}
+      {gameError && (
+        <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-6 py-3 rounded-2xl mb-8 text-xs font-black uppercase tracking-widest animate-shake">
+          ⚠️ {gameError}
         </div>
       )}
 
-      <div className="flex flex-col gap-4 w-full max-w-sm md:max-w-3xl md:grid md:grid-cols-2">
-        <div className="bg-slate-800/50 backdrop-blur p-6 md:p-8 rounded-2xl border border-slate-700 hover:border-blue-500/50 shadow-xl">
-          <h2 className="text-xl md:text-2xl font-bold mb-2">Host Mission</h2>
-          <p className="text-slate-400 text-sm mb-6 md:mb-8 leading-tight">Start a new post and invite allies.</p>
+      <div className="flex flex-col gap-6 w-full max-w-sm md:max-w-4xl md:grid md:grid-cols-2">
+        {/* Host Card */}
+        <div className="bg-slate-800/40 backdrop-blur-xl p-10 rounded-[2.5rem] border border-slate-700 group hover:border-blue-500/50 transition-all shadow-2xl relative overflow-hidden">
+          <div className="absolute -top-12 -right-12 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20" />
+          <h2 className="text-3xl font-black mb-3 tracking-tight italic">Host Mission</h2>
+          <p className="text-slate-400 text-sm mb-10 leading-relaxed max-w-[200px]">Establish a new command post and deploy in any sector.</p>
           <button 
             onClick={createRoom}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold transition-all active:scale-95 shadow-lg shadow-blue-900/40"
+            className="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-3xl font-black text-xl transition-all active:scale-95 shadow-[0_15px_30px_-5px_rgba(37,99,235,0.4)]"
           >
             Deploy Room
           </button>
         </div>
 
-        <div className="bg-slate-800/50 backdrop-blur p-6 md:p-8 rounded-2xl border border-slate-700 hover:border-green-500/50 shadow-xl text-center md:text-left">
-          <h2 className="text-xl md:text-2xl font-bold mb-2">Join Operation</h2>
-          <p className="text-slate-400 text-sm mb-4 md:mb-6">Enter code to join deployment.</p>
-          <input
-            type="text"
-            placeholder="XXXXXX"
-            value={inputRoomCode}
-            onChange={(e) => setInputRoomCode(e.target.value.toUpperCase())}
-            className="w-full bg-slate-900/80 border border-slate-700 rounded-xl p-3 md:p-4 mb-4 text-center text-xl md:text-2xl tracking-[0.4em] font-mono uppercase focus:border-green-500 transition-colors placeholder:text-slate-700"
-          />
+        {/* Join Card */}
+        <div className="bg-slate-800/40 backdrop-blur-xl p-10 rounded-[2.5rem] border border-slate-700 group hover:border-green-500/50 transition-all shadow-2xl relative overflow-hidden">
+           <div className="absolute -top-12 -right-12 w-24 h-24 bg-green-500/10 rounded-full blur-2xl group-hover:bg-green-500/20" />
+          <h2 className="text-3xl font-black mb-3 tracking-tight italic">Join Sector</h2>
+          <p className="text-slate-400 text-sm mb-6 leading-relaxed">Enter an encrypted code to intercept an active operation.</p>
+          
+          <div className="relative mb-6">
+            <input
+              type="text"
+              placeholder="XXXXXX"
+              maxLength={6}
+              value={inputRoomCode}
+              onChange={(e) => setInputRoomCode(e.target.value.toUpperCase())}
+              className="w-full bg-slate-950/80 border-2 border-slate-700 rounded-2xl p-5 text-center text-3xl tracking-[0.5em] font-black font-mono uppercase focus:border-green-500 focus:outline-none transition-all placeholder:text-slate-800"
+            />
+            {inputRoomCode.length === 6 && <div className="absolute right-4 top-1/2 -translate-y-1/2 text-green-500 animate-pulse text-xs font-black">READY</div>}
+          </div>
+          
           <button 
             onClick={() => joinRoom(inputRoomCode)}
-            className="w-full bg-slate-700 hover:bg-green-600 py-4 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-30"
-            disabled={!inputRoomCode || inputRoomCode.length < 4}
+            className="w-full bg-slate-700 hover:bg-green-600 text-white py-5 rounded-3xl font-black text-xl transition-all active:scale-95 disabled:opacity-30 disabled:pointer-events-none shadow-xl"
+            disabled={inputRoomCode.length < 4}
           >
             Intercept Code
           </button>
         </div>
       </div>
+      
+      <p className="mt-16 text-slate-600 text-[10px] uppercase font-black tracking-[0.5em] animate-pulse">Global Command v0.4.2 // Status: Nominal</p>
     </div>
   );
 }

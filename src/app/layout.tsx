@@ -1,4 +1,5 @@
 import { AuthProvider } from "@/game/hooks/useAuth";
+import OrientationCheck from "@/game/components/OrientationCheck";
 import "@/app/globals.css";
 
 export const metadata = {
@@ -13,9 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
+      <body className="bg-slate-950 overflow-x-hidden">
         <AuthProvider>
-          {children}
+          <OrientationCheck>
+            {children}
+          </OrientationCheck>
         </AuthProvider>
       </body>
     </html>
