@@ -81,71 +81,82 @@ export default function LandingPage() {
   // 2. VICTORY VIEW
   if (gameState && gameState.gameStatus === 'victory') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-950 text-white p-4 relative bg-jungle">
-        <div className="text-center w-full max-w-lg animate-in fade-in zoom-in duration-700 panel-wood p-10 border-8 border-yellow-400 shadow-[0_0_80px_rgba(251,191,36,0.6)] relative overflow-hidden">
+      <div className="flex flex-col items-center justify-center h-screen max-h-screen w-screen overflow-hidden bg-emerald-950 text-white p-4 relative bg-jungle">
+        <div className="text-center w-full max-w-lg landscape:max-w-2xl animate-in fade-in zoom-in duration-700 panel-wood p-5 md:p-10 border-8 border-yellow-400 shadow-[0_0_80px_rgba(251,191,36,0.6)] relative overflow-hidden flex flex-col landscape:flex-row lg:flex-col items-center justify-between gap-4 md:gap-6">
           <div className="absolute -top-12 -left-12 w-32 h-32 bg-yellow-400/20 rounded-full blur-3xl animate-pulse" />
           
-          <h1 className="text-6xl md:text-8xl font-black text-yellow-400 tracking-tighter mb-4 leading-none font-cartoon rotate-[-2deg]">
-            VICTORY!
-          </h1>
-          <p className="text-xl text-yellow-100 mb-10 uppercase tracking-[0.3em] font-black italic">Sector Secured. Nexus Defended.</p>
-          
-          <div className="space-y-3 mb-10">
-            <h2 className="text-center font-cartoon-sm text-emerald-300 text-sm mb-4 tracking-widest">🏆 LEGENDARY COMMANDERS 🏆</h2>
-            {Object.values(gameState.players).sort((a,b) => b.score - a.score).map((p, i) => (
-              <div key={p.id} className="bg-amber-950 border-3 border-yellow-600/50 p-5 rounded-3xl flex justify-between items-center shadow-lg">
-                <div className="flex items-center gap-4">
-                  <span className="text-yellow-500 font-cartoon text-xl">#0{i+1}</span>
-                  <span className="font-black text-amber-100 text-lg font-cartoon-flat">{p.name}</span>
-                </div>
-                <div className="text-right">
-                  <span className="block text-[10px] text-amber-500 font-black tracking-widest uppercase">Final Score</span>
-                  <span className="text-yellow-400 font-cartoon text-2xl">{p.score}</span>
-                </div>
-              </div>
-            ))}
+          <div className="flex flex-col items-center landscape:items-start text-center landscape:text-left flex-1">
+            <h1 className="text-5xl md:text-8xl font-cartoon text-yellow-400 tracking-tighter mb-2 md:mb-4 leading-none font-cartoon rotate-[-2deg]">
+              VICTORY!
+            </h1>
+            <p className="text-xs md:text-xl text-yellow-100 mb-2 md:mb-10 uppercase tracking-[0.2em] md:tracking-[0.3em] font-black italic">Sector Secured. Nexus Defended.</p>
           </div>
+          
+          <div className="w-full max-w-sm flex flex-col gap-4 flex-1 z-10">
+            <div className="space-y-2 md:space-y-3">
+              <h2 className="text-center font-cartoon-sm text-emerald-300 text-xs md:text-sm mb-1 md:mb-2 tracking-widest">🏆 COMMANDERS 🏆</h2>
+              <div className="space-y-1.5 max-h-[150px] landscape:max-h-[100px] overflow-y-auto scrollbar-thin">
+                {Object.values(gameState.players).sort((a,b) => b.score - a.score).map((p, i) => (
+                  <div key={p.id} className="bg-amber-950 border-3 border-yellow-600/50 p-2.5 md:p-4 rounded-3xl flex justify-between items-center shadow-lg">
+                    <div className="flex items-center gap-4">
+                      <span className="text-yellow-500 font-cartoon text-base md:text-xl">#0{i+1}</span>
+                      <span className="font-black text-amber-100 text-sm md:text-lg font-cartoon-flat">{p.name}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="block text-[8px] md:text-[10px] text-amber-500 font-black tracking-widest uppercase">Final Score</span>
+                      <span className="text-yellow-400 font-cartoon text-lg md:text-2xl">{p.score}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
 
-          <button 
-            onClick={() => window.location.reload()}
-            className="w-full btn-cartoon btn-gold py-6 rounded-[2.5rem] text-2xl font-cartoon"
-          >
-            RETURN TO COUNCIL
-          </button>
+            <button 
+              onClick={() => window.location.reload()}
+              className="w-full btn-cartoon btn-gold py-3 md:py-6 rounded-2xl md:rounded-[2.5rem] text-lg md:text-2xl font-cartoon"
+            >
+              RETURN TO COUNCIL
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
+
   // 3. GAME OVER VIEW
   if (gameState && gameState.gameStatus === 'gameOver') {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-950/90 text-white p-4 relative bg-jungle">
-        <div className="text-center w-full max-w-md animate-in fade-in zoom-in duration-500 panel-wood p-8 border-4 border-amber-950">
-          <h1 className="text-5xl md:text-6xl font-black text-red-500 tracking-tight mb-4 leading-none font-cartoon">
-            WAR ROOM BREACHED
-          </h1>
-          <p className="text-sm text-yellow-100 mb-8 uppercase tracking-widest font-bold">The Elixir Core has been destroyed!</p>
-          
-          <div className="space-y-2.5 mb-8">
-            <h2 className="text-left font-cartoon-sm text-yellow-400 text-sm mb-3">🛡️ LEADERBOARD</h2>
-            {Object.values(gameState.players).sort((a,b) => b.score - a.score).map((p, i) => (
-              <div key={p.id} className="bg-amber-950/80 border-2 border-amber-700 p-3.5 rounded-2xl flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <span className="text-yellow-500 font-cartoon-sm text-xs">#0{i+1}</span>
-                  <span className="font-bold text-amber-100 text-sm font-cartoon-flat">{p.name}</span>
-                </div>
-                <span className="text-yellow-400 font-cartoon-sm text-sm">🏆 {p.score}</span>
-              </div>
-            ))}
+      <div className="flex flex-col items-center justify-center h-screen max-h-screen w-screen overflow-hidden bg-emerald-950/90 text-white p-4 relative bg-jungle">
+        <div className="text-center w-full max-w-md landscape:max-w-2xl animate-in fade-in zoom-in duration-500 panel-wood p-4 md:p-8 border-4 border-amber-950 flex flex-col landscape:flex-row lg:flex-col items-center justify-between gap-4 md:gap-6">
+          <div className="flex flex-col items-center landscape:items-start text-center landscape:text-left flex-1">
+            <h1 className="text-4xl md:text-6xl font-black text-red-500 tracking-tight mb-2 md:mb-4 leading-none font-cartoon">
+              WAR ROOM BREACHED
+            </h1>
+            <p className="text-xs md:text-sm text-yellow-100 mb-2 md:mb-8 uppercase tracking-widest font-bold">The Elixir Core has been destroyed!</p>
           </div>
+          
+          <div className="w-full max-w-sm flex flex-col gap-4 flex-1">
+            <div className="space-y-2">
+              <h2 className="text-left font-cartoon-sm text-yellow-400 text-xs md:text-sm mb-1">🛡️ LEADERBOARD</h2>
+              {Object.values(gameState.players).sort((a,b) => b.score - a.score).map((p, i) => (
+                <div key={p.id} className="bg-amber-950/80 border-2 border-amber-700 p-2 md:p-3.5 rounded-2xl flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <span className="text-yellow-500 font-cartoon-sm text-xs">#0{i+1}</span>
+                    <span className="font-bold text-amber-100 text-xs md:text-sm font-cartoon-flat">{p.name}</span>
+                  </div>
+                  <span className="text-yellow-400 font-cartoon-sm text-xs md:text-sm">🏆 {p.score}</span>
+                </div>
+              ))}
+            </div>
 
-          <button 
-            onClick={() => window.location.reload()}
-            className="w-full btn-cartoon btn-gold py-5 rounded-2xl text-xl font-cartoon"
-          >
-            RETURN TO VILLAGE
-          </button>
+            <button 
+              onClick={() => window.location.reload()}
+              className="w-full btn-cartoon btn-gold py-3 md:py-5 rounded-2xl text-base md:text-xl font-cartoon"
+            >
+              RETURN TO VILLAGE
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -154,7 +165,7 @@ export default function LandingPage() {
   // 3. GAME VIEW (Active Raid)
   if (gameState && gameState.gameStatus === 'playing') {
     return (
-      <div className="flex flex-col landscape:flex-row lg:flex-row items-center justify-center min-h-screen landscape:h-screen landscape:max-h-screen lg:h-screen lg:max-h-screen w-full bg-emerald-900 text-white p-3 landscape:p-2 lg:p-4 select-none overflow-hidden bg-jungle gap-4 landscape:gap-4 lg:gap-6">
+      <div className="flex flex-col landscape:flex-row lg:flex-row items-center justify-center h-screen max-h-screen w-screen bg-emerald-900 text-white p-3 landscape:p-2 lg:p-4 select-none overflow-hidden bg-jungle gap-4 landscape:gap-4 lg:gap-6">
         
         {/* Left column: Canvas Board */}
         <div className="flex flex-col items-center justify-center h-full landscape:h-full lg:h-full w-full max-w-[960px] landscape:w-auto relative">
@@ -367,122 +378,137 @@ export default function LandingPage() {
   // 4. WAR ROOM LOBBY
   if (roomCode) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-950 text-white p-4 bg-jungle outline-none">
-        <div className="max-w-md w-full animate-in slide-in-from-bottom-8 duration-500 outline-none">
-          <div className="text-center mb-8">
-            <h1 className="text-4xl font-cartoon mb-2 tracking-tight uppercase italic text-yellow-400">WAR ROOM LOBBY</h1>
-            <p className="text-yellow-100/60 text-xs uppercase tracking-widest font-cartoon-flat">WAR PATH ENVELOPE: <span className="text-yellow-400 font-cartoon-sm">{roomCode}</span></p>
-          </div>
-          
-          <div className="panel-wood p-8 md:p-10 shadow-2xl relative overflow-hidden border-4 border-amber-950 outline-none">
-            <div className="absolute -top-24 -left-24 w-48 h-48 bg-yellow-600/10 rounded-full blur-[60px]" />
-            
-            <h2 className="text-base font-cartoon-sm mb-6 flex items-center gap-3 text-yellow-400">
-              <div className="w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse" />
-              SOLDIERS ALIGNING:
-            </h2>
-            
-            <div className="space-y-3 mb-10 font-cartoon-flat">
-              {gameState && Object.values(gameState.players).map((p) => (
-                <div key={p.id} className="flex items-center justify-between p-4 bg-amber-950/80 rounded-2xl border-2 border-amber-800">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-amber-900 flex items-center justify-center text-[12px] border-2 border-amber-600 text-yellow-400">
-                      🛡️
-                    </div>
-                    <span className="font-bold text-amber-100 text-base">{p.name}</span>
-                  </div>
-                  <span className={`text-[10px] font-cartoon px-3 py-1 rounded-full uppercase tracking-wider ${p.id === user.uid ? 'bg-green-600 text-white border border-green-400' : 'bg-amber-900 text-amber-400 border border-amber-700'}`}>
-                    {p.id === user.uid ? "YOU" : "READY"}
-                  </span>
-                </div>
-              ))}
-              {[...Array(Math.max(0, 4 - (gameState ? Object.keys(gameState.players).length : 0)))].map((_, i) => (
-                 <div key={i} className="p-4 rounded-2xl border-2 border-dashed border-amber-900/60 flex items-center justify-center text-amber-800/80 text-[10px] font-cartoon uppercase tracking-[0.2em]">
-                    OPEN SLOT
-                 </div>
-              ))}
-            </div>
-
-            {isHost ? (
-              <button 
-                onClick={startGame}
-                className="w-full btn-cartoon btn-red py-5 rounded-3xl text-2xl font-cartoon"
-              >
-                START BATTLE!
-                <span className="block text-[10px] text-red-200 mt-0.5 font-cartoon-flat tracking-wider uppercase opacity-80">ENGAGE PROTOCOL</span>
-              </button>
-            ) : (
-              <div className="text-center p-6 bg-amber-950/60 rounded-2xl border-2 border-dashed border-amber-800 text-amber-400 font-cartoon-sm text-xs">
-                WAITING FOR VILLAGE CHIEF TO START DEPLOYMENT...
-              </div>
-            )}
-          </div>
-          
+      <div className="flex flex-col landscape:flex-row lg:flex-col lg:landscape:flex-col items-center justify-center h-screen max-h-screen w-screen overflow-hidden bg-emerald-950 text-white p-4 bg-jungle outline-none gap-4 md:gap-8 lg:gap-8">
+        <div className="text-center landscape:text-left lg:text-center lg:landscape:text-center flex flex-col items-center landscape:items-start lg:items-center lg:landscape:items-center mb-2 landscape:mb-0 lg:mb-6">
+          <h1 className="text-3xl md:text-4xl font-cartoon mb-1 md:mb-2 tracking-tight uppercase italic text-yellow-400">WAR ROOM LOBBY</h1>
+          <p className="text-yellow-100/60 text-[10px] md:text-xs uppercase tracking-widest font-cartoon-flat mb-2 md:mb-4">WAR PATH ENVELOPE: <span className="text-yellow-400 font-cartoon-sm">{roomCode}</span></p>
           <button 
             onClick={() => window.location.reload()} 
-            className="w-full mt-8 text-amber-600 hover:text-amber-400 text-xs font-cartoon uppercase tracking-[0.2em] transition-colors"
+            className="btn-cartoon btn-red py-2 px-6 rounded-xl text-xs font-cartoon hidden landscape:block lg:hidden lg:landscape:hidden"
           >
             ABORT MISSION
           </button>
         </div>
+        
+        <div className="panel-wood p-4 landscape:p-3 lg:p-8 lg:landscape:p-8 md:p-8 shadow-2xl relative overflow-hidden border-4 border-amber-950 outline-none w-full max-w-md landscape:max-w-sm lg:max-w-md lg:landscape:max-w-md landscape:max-h-[90vh] lg:max-h-none lg:landscape:max-h-none lg:overflow-y-visible lg:landscape:overflow-y-visible scrollbar-thin">
+          <div className="absolute -top-24 -left-24 w-48 h-48 bg-yellow-600/10 rounded-full blur-[60px]" />
+          
+          <h2 className="text-xs md:text-base font-cartoon-sm mb-3 landscape:mb-1.5 lg:mb-6 lg:landscape:mb-6 md:mb-6 flex items-center gap-3 text-yellow-400">
+            <div className="w-2 md:w-2.5 h-2 md:h-2.5 rounded-full bg-yellow-500 animate-pulse" />
+            SOLDIERS ALIGNING:
+          </h2>
+          
+          <div className="space-y-1.5 landscape:space-y-1 lg:space-y-3 lg:landscape:space-y-3 md:space-y-3 mb-4 landscape:mb-2.5 lg:mb-10 lg:landscape:mb-10 md:mb-10 font-cartoon-flat max-h-[140px] lg:max-h-none lg:landscape:max-h-none md:max-h-none overflow-y-auto lg:overflow-y-visible lg:landscape:overflow-y-visible scrollbar-thin">
+            {gameState && Object.values(gameState.players).map((p) => (
+              <div key={p.id} className="flex items-center justify-between p-2.5 landscape:p-1.5 lg:p-4 lg:landscape:p-4 md:p-4 bg-amber-950/80 rounded-2xl border-2 border-amber-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 md:w-8 md:h-8 rounded-full bg-amber-900 flex items-center justify-center text-[10px] md:text-[12px] border-2 border-amber-600 text-yellow-400">
+                    🛡️
+                  </div>
+                  <span className="font-bold text-amber-100 text-xs landscape:text-[11px] lg:text-base lg:landscape:text-base md:text-base">{p.name}</span>
+                </div>
+                <span className={`text-[8px] md:text-[10px] font-cartoon px-2 md:px-3 py-0.5 md:py-1 rounded-full uppercase tracking-wider ${p.id === user.uid ? 'bg-green-600 text-white border border-green-400' : 'bg-amber-900 text-amber-400 border border-amber-700'}`}>
+                  {p.id === user.uid ? "YOU" : "READY"}
+                </span>
+              </div>
+            ))}
+            {[...Array(Math.max(0, 4 - (gameState ? Object.keys(gameState.players).length : 0)))].map((_, i) => (
+               <div key={i} className="p-2 landscape:p-1 lg:p-4 lg:landscape:p-4 md:p-4 rounded-2xl border-2 border-dashed border-amber-900/60 flex items-center justify-center text-amber-800/80 text-[8px] md:text-[10px] font-cartoon uppercase tracking-[0.2em] h-8 landscape:h-6 lg:h-12 lg:landscape:h-12 md:h-auto">
+                  OPEN SLOT
+               </div>
+            ))}
+          </div>
+
+          {isHost ? (
+            <button 
+              onClick={startGame}
+              className="w-full btn-cartoon btn-red py-2.5 landscape:py-1.5 lg:py-5 lg:landscape:py-5 md:py-5 rounded-2xl md:rounded-3xl text-lg landscape:text-xs lg:text-2xl lg:landscape:text-2xl md:text-2xl font-cartoon"
+            >
+              START BATTLE!
+              <span className="block text-[8px] md:text-[10px] text-red-200 mt-0.5 font-cartoon-flat tracking-wider uppercase opacity-80">ENGAGE PROTOCOL</span>
+            </button>
+          ) : (
+            <div className="text-center p-3 landscape:p-1.5 lg:p-6 lg:landscape:p-6 md:p-6 bg-amber-950/60 rounded-2xl border-2 border-dashed border-amber-800 text-amber-400 font-cartoon-sm text-[10px] landscape:text-[9px] lg:text-xs lg:landscape:text-xs md:text-xs">
+              WAITING FOR VILLAGE CHIEF TO START DEPLOYMENT...
+            </div>
+          )}
+        </div>
+        
+        <button 
+          onClick={() => window.location.reload()} 
+          className="w-full mt-4 text-amber-600 hover:text-amber-400 text-xs font-cartoon uppercase tracking-[0.2em] transition-colors landscape:hidden lg:block lg:landscape:block"
+        >
+          ABORT MISSION
+        </button>
       </div>
     );
   }
 
   // 5. COMMAND DASHBOARD
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-emerald-950 text-white p-4 relative bg-jungle">
-      <div className="absolute top-6 right-6 flex items-center gap-4 bg-amber-950/90 p-2.5 rounded-2xl border-3 border-amber-700 shadow-xl z-20">
-        <div className="flex flex-col items-end pr-1.5 font-cartoon-flat">
-           <span className="text-[9px] text-amber-500 uppercase tracking-widest font-bold">ACTIVE CHIEF</span>
-           <span className="font-bold text-amber-100 text-sm tracking-tight">{user?.displayName}</span>
+    <div className="flex flex-col landscape:flex-row lg:flex-col lg:landscape:flex-col items-center justify-center h-screen max-h-screen w-screen overflow-hidden bg-emerald-950 text-white p-4 relative bg-jungle gap-4 md:gap-8 lg:gap-8">
+      <div className="absolute top-4 right-4 md:top-6 md:right-6 flex landscape:hidden lg:flex lg:landscape:flex items-center gap-2 md:gap-4 lg:gap-4 bg-amber-950/90 p-1.5 md:p-2.5 lg:p-2.5 rounded-2xl border-3 border-amber-700 shadow-xl z-20">
+        <div className="flex flex-col items-end pr-1 md:pr-1.5 font-cartoon-flat">
+           <span className="text-[7px] md:text-[9px] text-amber-500 uppercase tracking-widest font-bold">ACTIVE CHIEF</span>
+           <span className="font-bold text-amber-100 text-xs md:text-sm tracking-tight">{user?.displayName}</span>
         </div>
-        <button onClick={logout} className="bg-amber-900 hover:bg-red-900/20 text-yellow-400 hover:text-red-400 p-2 rounded-xl border-2 border-amber-600 transition-all cursor-pointer">
+        <button onClick={logout} className="bg-amber-900 hover:bg-red-900/20 text-yellow-400 hover:text-red-400 p-1 md:p-2 rounded-xl border-2 border-amber-600 transition-all cursor-pointer text-xs md:text-base">
           🚪
         </button>
       </div>
 
-      <div className="text-center mb-14 relative">
-        <h1 className="text-7xl md:text-8xl text-yellow-400 tracking-tight leading-none font-cartoon animate-bounce-slow">
+      <div className="text-center mb-2 landscape:mb-0 lg:mb-14 md:mb-14 relative flex flex-col items-center landscape:items-start lg:items-center lg:landscape:items-center">
+        <h1 className="text-5xl md:text-8xl text-yellow-400 tracking-tight leading-none font-cartoon animate-bounce-slow">
           NEXUS
         </h1>
-        <p className="text-emerald-300 font-cartoon text-sm tracking-wider mt-2 uppercase">VILLAGE TOWER DEFENSE</p>
-        <div className="h-1.5 w-24 bg-yellow-500 mx-auto mt-3 rounded-full shadow-[0_0_12px_#fbbf24]" />
+        <p className="text-emerald-300 font-cartoon text-xs md:text-sm tracking-wider mt-1 md:mt-2 uppercase">VILLAGE TOWER DEFENSE</p>
+        <div className="h-1 w-16 md:h-1.5 md:w-24 bg-yellow-500 mx-auto landscape:mx-0 lg:mx-auto lg:landscape:mx-auto mt-2 md:mt-3 rounded-full shadow-[0_0_12px_#fbbf24]" />
+        
+        {/* Render Active Chief here in landscape orientation */}
+        <div className="hidden landscape:flex lg:hidden lg:landscape:hidden items-center gap-2 bg-amber-950/90 p-1.5 rounded-xl border-2 border-amber-700 shadow-lg mt-4 z-20 font-cartoon-flat text-left">
+          <div className="flex flex-col items-start pr-1 font-cartoon-flat">
+             <span className="text-[7px] text-amber-500 uppercase tracking-widest font-bold">ACTIVE CHIEF</span>
+             <span className="font-bold text-amber-100 text-xs tracking-tight">{user?.displayName}</span>
+          </div>
+          <button onClick={logout} className="bg-amber-900 hover:bg-red-900/20 text-yellow-400 hover:text-red-400 p-1 rounded-lg border border-amber-600 transition-all cursor-pointer text-xs">
+            🚪
+          </button>
+        </div>
       </div>
 
       {gameError && (
-        <div className="bg-red-500/10 border-2 border-red-500/50 text-red-400 px-6 py-3.5 rounded-2xl mb-8 text-xs font-cartoon uppercase tracking-wider">
+        <div className="bg-red-500/10 border-2 border-red-500/50 text-red-400 px-6 py-2 rounded-2xl mb-4 md:mb-8 text-[10px] md:text-xs font-cartoon uppercase tracking-wider">
           ⚠️ {gameError}
         </div>
       )}
 
-      <div className="flex flex-col gap-6 w-full max-w-sm md:max-w-4xl md:grid md:grid-cols-2">
-        <div className="panel-wood p-9 rounded-[2rem] border-4 border-amber-950 shadow-2xl flex flex-col justify-between outline-none">
+      <div className="flex flex-col landscape:grid landscape:grid-cols-2 gap-4 md:gap-6 lg:gap-6 w-full max-w-sm landscape:max-w-xl lg:max-w-4xl lg:landscape:max-w-4xl">
+        <div className="panel-wood p-4 landscape:p-3 lg:p-9 lg:landscape:p-9 md:p-9 rounded-[2rem] border-4 border-amber-950 shadow-2xl flex flex-col justify-between outline-none landscape:max-h-[85vh] lg:max-h-none lg:landscape:max-h-none landscape:overflow-y-auto lg:overflow-y-visible lg:landscape:overflow-y-visible scrollbar-thin">
           <div>
-            <h2 className="text-3xl font-cartoon mb-2 text-yellow-400 uppercase italic">Host Village</h2>
-            <p className="text-yellow-100/70 text-sm mb-8 leading-relaxed font-cartoon-flat">Establish a new clan battlefield post and deploy defensive towers.</p>
+            <h2 className="text-lg md:text-3xl font-cartoon mb-1 md:mb-2 text-yellow-400 uppercase italic">Host Village</h2>
+            <p className="text-yellow-100/70 text-[10px] md:text-sm mb-4 md:mb-8 leading-relaxed font-cartoon-flat landscape:hidden lg:block">Establish a new clan battlefield post and deploy defensive towers.</p>
           </div>
           <button 
             onClick={createRoom}
-            className="w-full btn-cartoon btn-green py-5 rounded-3xl text-xl font-cartoon outline-none"
+            className="w-full btn-cartoon btn-green py-2 landscape:py-1.5 lg:py-5 lg:landscape:py-5 md:py-5 rounded-2xl md:rounded-3xl text-base landscape:text-xs lg:text-xl lg:landscape:text-xl md:text-xl font-cartoon outline-none"
           >
             CREATE WAR ROOM
           </button>
         </div>
 
-        <div className="panel-stone p-9 rounded-[2rem] border-4 border-zinc-950 shadow-2xl flex flex-col justify-between text-center md:text-left outline-none">
+        <div className="panel-stone p-4 landscape:p-3 lg:p-9 lg:landscape:p-9 md:p-9 rounded-[2rem] border-4 border-zinc-950 shadow-2xl flex flex-col justify-between text-center md:text-left outline-none landscape:max-h-[85vh] lg:max-h-none lg:landscape:max-h-none landscape:overflow-y-auto lg:overflow-y-visible lg:landscape:overflow-y-visible scrollbar-thin">
           <div>
-            <h2 className="text-3xl font-cartoon mb-2 text-yellow-400 uppercase italic">Join War</h2>
-            <p className="text-stone-300 text-sm mb-6 leading-relaxed font-cartoon-flat">Enter a war room code to intercept an active operation.</p>
+            <h2 className="text-lg md:text-3xl font-cartoon mb-1 md:mb-2 text-yellow-400 uppercase italic">Join War</h2>
+            <p className="text-stone-300 text-[10px] md:text-sm mb-3 md:mb-6 leading-relaxed font-cartoon-flat landscape:hidden lg:block">Enter a war room code to intercept an active operation.</p>
             
-            <div className="relative mb-6">
+            <div className="relative mb-3 md:mb-6">
               <input
                 type="text"
                 placeholder="XXXXXX"
                 maxLength={6}
                 value={inputRoomCode}
                 onChange={(e) => setInputRoomCode(e.target.value.toUpperCase())}
-                className="w-full bg-zinc-950 border-3 border-zinc-700 rounded-2xl p-4.5 text-center text-3xl tracking-[0.4em] font-cartoon uppercase focus:border-yellow-500 focus:outline-none transition-all placeholder:text-zinc-800 text-yellow-400 font-cartoon-flat outline-none"
+                className="w-full bg-zinc-950 border-3 border-zinc-700 rounded-xl md:rounded-2xl p-2.5 landscape:p-1.5 lg:p-4.5 lg:landscape:p-4.5 md:p-4.5 text-center text-xl landscape:text-lg lg:text-3xl lg:landscape:text-3xl md:text-3xl tracking-[0.4em] font-cartoon uppercase focus:border-yellow-500 focus:outline-none transition-all placeholder:text-zinc-800 text-yellow-400 font-cartoon-flat outline-none"
               />
             </div>
           </div>
@@ -490,7 +516,7 @@ export default function LandingPage() {
           <button 
             onClick={handleJoin}
             disabled={inputRoomCode.length < 4 || isJoining}
-            className="w-full btn-cartoon btn-gold py-5 rounded-3xl text-xl font-cartoon outline-none"
+            className="w-full btn-cartoon btn-gold py-2 landscape:py-1.5 lg:py-5 lg:landscape:py-5 md:py-5 rounded-2xl md:rounded-3xl text-base landscape:text-xs lg:text-xl lg:landscape:text-xl md:text-xl font-cartoon outline-none"
           >
             {isJoining ? "JOINING WAR..." : "JOIN CLAN WAR"}
           </button>
