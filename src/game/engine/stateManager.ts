@@ -13,7 +13,7 @@ export const GAME_PATH = [
 export class StateManager {
   private state: GameState;
   private spawnTimer: number = 0;
-  private waveDelay: number = 5; 
+  private waveDelay: number = 2; // FASTER TRANSITION: 2 seconds
   private enemiesToSpawn: number = 0;
 
   constructor() {
@@ -49,9 +49,7 @@ export class StateManager {
   }
 
   public addPlayer(id: string, name: string) {
-    this.state.players[id] = {
-      id, name, lives: 20, gold: 150, score: 0
-    };
+    this.state.players[id] = { id, name, lives: 20, gold: 150, score: 0 };
   }
 
   public removePlayer(id: string) {
@@ -75,23 +73,21 @@ export class StateManager {
   public update(dt: number) {
     if (this.state.gameStatus !== 'playing') return;
 
-    // Juice: Screen Shake Decay
     if (this.state.screenShake > 0) {
       this.state.screenShake -= dt * 3;
       if (this.state.screenShake < 0) this.state.screenShake = 0;
     }
 
-    // Juice: Floating Text Update
     this.state.floatingTexts = this.state.floatingTexts.filter(ft => {
-      ft.life -= dt * 1.2;
-      ft.y -= dt * 25; // Drift up
+      ft.life -= dt * 1.5;
+      ft.y -= dt * 25;
       return ft.life > 0;
     });
 
     // 1. Spawning
     if (this.enemiesToSpawn > 0) {
       this.spawnTimer += dt;
-      if (this.spawnTimer >= 1.5) {
+      if (this.spawnTimer >= 0.6) { // FASTER SPAWNING: 0.6s
         this.spawnEnemy();
         this.enemiesToSpawn--;
         this.spawnTimer = 0;
@@ -100,7 +96,7 @@ export class StateManager {
       this.waveDelay -= dt;
       if (this.waveDelay <= 0) {
         this.startNextWave();
-        this.waveDelay = 5;
+        this.waveDelay = 2; 
       }
     }
 
@@ -122,8 +118,8 @@ export class StateManager {
         if (enemy.pathIndex >= GAME_PATH.length - 1) {
           this.state.nexusHealth -= 10;
           enemy.health = 0;
-          this.state.screenShake = 0.6; // TRIGGER SHAKE
-          this.addFloatingText("CRITICAL HIT", enemy.x, enemy.y, "#ef4444");
+          this.state.screenShake = 0.6;
+          this.addFloatingText("BREACHED", enemy.x, enemy.y, "#ef4444");
           if (this.state.nexusHealth <= 0) this.state.gameStatus = 'gameOver';
           return;
         }
